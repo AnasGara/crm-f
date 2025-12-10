@@ -12,6 +12,8 @@ import {
   ArrowDownIcon,
   FunnelIcon,
   XMarkIcon,
+  PencilIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 
 const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
@@ -574,15 +576,15 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                             setEditingLead(lead);
                             setIsModalOpen(true);
                           }}
-                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                          className="p-1 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
-                          Edit
+                          <PencilIcon className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => handleDeleteLead(lead.id)}
-                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
+                          className="p-1 text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                         >
-                          Delete
+                          <TrashIcon className="h-5 w-5" />
                         </button>
                       </div>
                     </td>
