@@ -5,6 +5,7 @@ import leadService, {
   UpdateLeadData,
 } from "../services/leadsService";
 import LeadForm from "./LeadForm";
+import GDPiliaComposer from "./GDPiliaComposer";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -15,6 +16,7 @@ import {
   PencilIcon,
   TrashIcon,
   UserIcon,
+  EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 
 const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
@@ -22,6 +24,7 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
 
   // Pagination state
@@ -414,6 +417,12 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
         lead={editingLead}
       />
 
+      <GDPiliaComposer
+        isOpen={isComposerOpen}
+        onClose={() => setIsComposerOpen(false)}
+        lead={editingLead}
+      />
+
       {/* Table Container */}
       <div className="mt-6 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
@@ -606,6 +615,15 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                           className="p-1 text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                         >
                           <TrashIcon className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingLead(lead);
+                            setIsComposerOpen(true);
+                          }}
+                          className="p-1 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                          <EnvelopeIcon className="h-5 w-5" />
                         </button>
                       </div>
                     </td>
