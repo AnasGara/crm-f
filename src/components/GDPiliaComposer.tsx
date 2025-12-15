@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Lead } from "../services/leadsService";
+import { useAuth } from "../contexts/AuthContext";
 import {
   XMarkIcon,
   UserCircleIcon,
@@ -17,6 +18,7 @@ const GDPiliaComposer: React.FC<GDPiliaComposerProps> = ({
   onClose,
   lead,
 }) => {
+  const { currentUser } = useAuth();
   const [messageType, setMessageType] = useState<"linkedin" | "email">(
     "email"
   );
@@ -31,7 +33,7 @@ const GDPiliaComposer: React.FC<GDPiliaComposerProps> = ({
   ];
 
   useEffect(() => {
-    if (lead) {
+    if (lead && currentUser) {
       let newMessage = "";
       switch (topic) {
         case "ask_for_contact":
@@ -41,10 +43,12 @@ const GDPiliaComposer: React.FC<GDPiliaComposerProps> = ({
 
 Dear ${lead.full_name},
 
-I came across your profile and was impressed by your work at ${lead.company}. I'd like to connect with you.
+I came across your profile and was impressed by your work at ${
+                  lead.company
+                }. I'd like to connect with you.
 
 Best regards,
-[Your Name]`
+${currentUser.name}`
               : `Hi ${lead.full_name}, I came across your profile and was impressed by your work at ${lead.company}. I'd like to connect with you.`;
           break;
         case "plan_rendez_vous":
@@ -57,7 +61,7 @@ Dear ${lead.full_name},
 I hope this email finds you well. I would like to schedule a brief meeting to discuss potential collaboration. Please let me know what time works best for you.
 
 Best regards,
-[Your Name]`
+${currentUser.name}`
               : `Hi ${lead.full_name}, I'd like to schedule a brief meeting to discuss potential collaboration. Please let me know what time works best for you.`;
           break;
         case "follow_up":
@@ -70,7 +74,7 @@ Dear ${lead.full_name},
 I'm writing to follow up on our recent conversation. I'm looking forward to hearing from you.
 
 Best regards,
-[Your Name]`
+${currentUser.name}`
               : `Hi ${lead.full_name}, just following up on our recent conversation. Looking forward to hearing from you.`;
           break;
         default:
@@ -78,15 +82,32 @@ Best regards,
       }
       setMessage(newMessage);
     }
-  }, [topic, messageType, lead]);
+  }, [topic, messageType, lead, currentUser]);
 
   if (!isOpen || !lead) {
     return null;
   }
+  const handleSend = () => {
+    if (messageType === "email") {
+      const subjectMatch = message.match(/Subject: (.*)/);
+      const subject = subjectMatch ? subjectMatch[1] : "";
+      const body = message.replace(`Subject: ${subject}`, "").trim();
+      window.location.href = `mailto:${
+        lead.email
+      }?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+        body
+      )}`;
+    } else {
+      window.open(lead.profile_url, "_blank");
+    }
+  };
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
         <div className="p-6 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-800">
             GDPilia Composer
@@ -178,7 +199,16 @@ Best regards,
           >
             Cancel
           </button>
-          <button className="ml-3 px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700">
+          <button
+            onClick={handleCopy}
+            className="ml-3 px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700"
+          >
+            Copy
+          </button>
+          <button
+            onClick={handleSend}
+            className="ml-3 px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700"
+          >
             Send
           </button>
         </div>
