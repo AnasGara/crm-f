@@ -64,6 +64,7 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
       // Global search filter
       const matchesSearch = searchTerm
         ? safeToString(lead.full_name).includes(searchTerm.toLowerCase()) ||
+          safeToString(lead.email).includes(searchTerm.toLowerCase()) ||
           safeToString(lead.company).includes(searchTerm.toLowerCase()) ||
           safeToString(lead.position).includes(searchTerm.toLowerCase())
         : true;
@@ -435,6 +436,12 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                   scope="col"
                   className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                 >
+                  Email
+                </th>
+                <th
+                  scope="col"
+                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                >
                   Company
                 </th>
                 <th
@@ -525,6 +532,11 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                             </p>
                           )}
                         </div>
+                      </div>
+                    </td>
+                    <td className="px-3 py-4">
+                      <div className="text-sm text-gray-900 font-medium">
+                        {lead.email}
                       </div>
                     </td>
                     <td className="px-3 py-4">

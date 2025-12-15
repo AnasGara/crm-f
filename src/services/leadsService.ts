@@ -5,6 +5,7 @@ export interface Lead {
     id: number;
     organisation_id: number;
     full_name: string;
+    email: string;
     position: string;
     company: string;
     location: string;
@@ -28,6 +29,7 @@ export interface LeadsApiResponse {
 
 export interface CreateLeadData {
   full_name: string;
+  email: string;
   position: string;
   company: string;
   location: string;

@@ -12,6 +12,7 @@ interface LeadFormProps {
 const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, onSave, lead }) => {
   const [formData, setFormData] = useState<CreateLeadData | UpdateLeadData>({
     full_name: '',
+    email: '',
     position: '',
     company: '',
     location: '',
@@ -31,6 +32,7 @@ const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, onSave, lead }) =>
     } else {
       setFormData({
         full_name: '',
+        email: '',
         position: '',
         company: '',
         location: '',
