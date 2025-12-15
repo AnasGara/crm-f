@@ -14,6 +14,7 @@ import {
   XMarkIcon,
   PencilIcon,
   TrashIcon,
+  UserIcon,
 } from "@heroicons/react/24/outline";
 
 const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
@@ -566,20 +567,28 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                     </td>
 
                     <td className="px-3 py-4">
-                      <a
-                        href={lead.profile_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() => {
-                          // Mark as seen when clicking on profile
-                          if (!lead.seen) {
-                            handleMarkAsSeen(lead.id);
-                          }
-                        }}
-                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-                      >
-                        View Profile
-                      </a>
+<a
+  href={lead.profile_url}
+  target="_blank"
+  rel="noopener noreferrer"
+  onClick={() => {
+    if (!lead.seen) {
+      handleMarkAsSeen(lead.id);
+    }
+  }}
+  className="inline-flex items-center justify-center
+             p-2 rounded-full
+             text-blue-600 bg-blue-50
+             cursor-pointer
+             hover:text-blue-700 hover:bg-blue-100
+             active:scale-95
+             transition-all duration-150
+             focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+>
+  <UserIcon className="h-5 w-5" />
+  <span className="sr-only">View Profile</span>
+</a>
+
                     </td>
                     <td className="px-3 py-4">
                       <div className="flex space-x-2">
