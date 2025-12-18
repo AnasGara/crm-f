@@ -23,6 +23,7 @@ const GDPiliaComposer: React.FC<GDPiliaComposerProps> = ({
     "email"
   );
   const [topic, setTopic] = useState<string>("");
+  const [subject, setSubject] = useState<string>("");
   const [message, setMessage] = useState<string>("");
 
   const topics = [
@@ -34,52 +35,42 @@ const GDPiliaComposer: React.FC<GDPiliaComposerProps> = ({
 
   useEffect(() => {
     if (lead && currentUser) {
+      let newSubject = "";
       let newMessage = "";
-      switch (topic) {
-        case "ask_for_contact":
-          newMessage =
-            messageType === "email"
-              ? `Subject: Connection Request
-
-Dear ${lead.full_name},
-
-I came across your profile and was impressed by your work at ${
-                  lead.company
-                }. I'd like to connect with you.
-
-Best regards,
-${currentUser.name}`
-              : `Hi ${lead.full_name}, I came across your profile and was impressed by your work at ${lead.company}. I'd like to connect with you.`;
-          break;
-        case "plan_rendez_vous":
-          newMessage =
-            messageType === "email"
-              ? `Subject: Meeting Request
-
-Dear ${lead.full_name},
-
-I hope this email finds you well. I would like to schedule a brief meeting to discuss potential collaboration. Please let me know what time works best for you.
-
-Best regards,
-${currentUser.name}`
-              : `Hi ${lead.full_name}, I'd like to schedule a brief meeting to discuss potential collaboration. Please let me know what time works best for you.`;
-          break;
-        case "follow_up":
-          newMessage =
-            messageType === "email"
-              ? `Subject: Following Up
-
-Dear ${lead.full_name},
-
-I'm writing to follow up on our recent conversation. I'm looking forward to hearing from you.
-
-Best regards,
-${currentUser.name}`
-              : `Hi ${lead.full_name}, just following up on our recent conversation. Looking forward to hearing from you.`;
-          break;
-        default:
-          newMessage = "";
+      if (messageType === "email") {
+        switch (topic) {
+          case "ask_for_contact":
+            newSubject = "Connection Request";
+            newMessage = `Dear ${lead.full_name},\n\nI came across your profile and was impressed by your work at ${lead.company}. I'd like to connect with you.\n\nBest regards,\n${currentUser.name}`;
+            break;
+          case "plan_rendez_vous":
+            newSubject = "Meeting Request";
+            newMessage = `Dear ${lead.full_name},\n\nI hope this email finds you well. I would like to schedule a brief meeting to discuss potential collaboration. Please let me know what time works best for you.\n\nBest regards,\n${currentUser.name}`;
+            break;
+          case "follow_up":
+            newSubject = "Following Up";
+            newMessage = `Dear ${lead.full_name},\n\nI'm writing to follow up on our recent conversation. I'm looking forward to hearing from you.\n\nBest regards,\n${currentUser.name}`;
+            break;
+          default:
+            newSubject = "";
+            newMessage = "";
+        }
+      } else {
+        switch (topic) {
+          case "ask_for_contact":
+            newMessage = `Hi ${lead.full_name}, I came across your profile and was impressed by your work at ${lead.company}. I'd like to connect with you.`;
+            break;
+          case "plan_rendez_vous":
+            newMessage = `Hi ${lead.full_name}, I'd like to schedule a brief meeting to discuss potential collaboration. Please let me know what time works best for you.`;
+            break;
+          case "follow_up":
+            newMessage = `Hi ${lead.full_name}, just following up on our recent conversation. Looking forward to hearing from you.`;
+            break;
+          default:
+            newMessage = "";
+        }
       }
+      setSubject(newSubject);
       setMessage(newMessage);
     }
   }, [topic, messageType, lead, currentUser]);
@@ -89,20 +80,21 @@ ${currentUser.name}`
   }
   const handleSend = () => {
     if (messageType === "email") {
-      const subjectMatch = message.match(/Subject: (.*)/);
-      const subject = subjectMatch ? subjectMatch[1] : "";
-      const body = message.replace(`Subject: ${subject}`, "").trim();
       window.location.href = `mailto:${
         lead.email
       }?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
-        body
+        message
       )}`;
     } else {
       window.open(lead.profile_url, "_blank");
     }
   };
   const handleCopy = () => {
-    navigator.clipboard.writeText(message);
+    if (messageType === "email") {
+      navigator.clipboard.writeText(`Subject: ${subject}\n\n${message}`);
+    } else {
+      navigator.clipboard.writeText(message);
+    }
   };
 
   return (
@@ -158,7 +150,7 @@ ${currentUser.name}`
               htmlFor="topic"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Select a topic
+              Objet
             </label>
             <select
               id="topic"
@@ -166,7 +158,7 @@ ${currentUser.name}`
               onChange={(e) => setTopic(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             >
-              <option value="">Select a topic</option>
+              <option value="">Veuillez choisir une option</option>
               {topics.map((t) => (
                 <option key={t.value} value={t.value}>
                   {t.label}
@@ -176,6 +168,23 @@ ${currentUser.name}`
           </div>
           {topic && (
             <div>
+              {messageType === "email" && (
+                <div className="mb-4">
+                  <label
+                    htmlFor="subject"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Subject
+                  </label>
+                  <input
+                    type="text"
+                    id="subject"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+              )}
               <label
                 htmlFor="message"
                 className="block text-sm font-medium text-gray-700 mb-2"
