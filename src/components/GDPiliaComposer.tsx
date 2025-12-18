@@ -211,8 +211,7 @@ const GDPiliaComposer: React.FC<GDPiliaComposerProps> = ({
                 />
                 <span className="ml-2 text-gray-700">{t.linkedin}</span>
               </label>
-            </div>
-            <div className="flex items-center space-x-4 mt-4">
+              <div className="border-l border-gray-300 h-6 mx-4"></div>
               <label className="flex items-center">
                 <input
                   type="radio"
