@@ -20,7 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
   const currentUser = authService.getStoredUser();
   const userDisplayName = authService.getUserDisplayName();
   const userInitials = authService.getUserInitials();
-//side menu
+//side menu , sidebar jnab
   const menuItems = [
     { id: 'dashboard' as View, label: t('dashboard'), icon: LayoutDashboard },
     { id: 'contacts' as View, label: t('contacts'), icon: Users },
@@ -28,8 +28,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
     { id: 'opportunities' as View, label: t('opportunities'), icon: Target },
     { id: 'tasks' as View, label: t('tasks'), icon: CheckSquare },
     //{ id: 'calendar' as View, label: t('calendar'), icon: Calendar },
-    { id: 'email' as View, label: t('email'), icon: Mail },
-    { id: 'analytics' as View, label: t('analytics'), icon: BarChart3 },
+    //{ id: 'email' as View, label: t('email'), icon: Mail },
+    //{ id: 'analytics' as View, label: t('analytics'), icon: BarChart3 },
     //{ id: 'integrations' as View, label: t('integrations'), icon: Link },
   ];
 
