@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Mail, Send, Users, Eye, BarChart3, Calendar, Edit, Trash2 } from 'lucide-react';
+import CreateCampaignWizard from './CreateCampaignWizard';
 
 interface EmailCampaign {
   id: number;
@@ -20,6 +21,7 @@ interface EmailProps {
 }
 
 const Email: React.FC<EmailProps> = ({ searchTerm }) => {
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [campaigns, setCampaigns] = useState<EmailCampaign[]>([
     {
       id: 1,
@@ -116,11 +118,16 @@ const Email: React.FC<EmailProps> = ({ searchTerm }) => {
           <h3 className="text-lg font-semibold text-gray-900">Email Campaigns</h3>
           <p className="text-sm text-gray-600">Create and manage your email marketing campaigns</p>
         </div>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+        <button
+          onClick={() => setIsWizardOpen(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+        >
           <Plus size={20} />
           <span>Create Campaign</span>
         </button>
       </div>
+
+      <CreateCampaignWizard isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} />
 
       {/* Email Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
