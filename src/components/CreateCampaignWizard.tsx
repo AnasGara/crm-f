@@ -163,14 +163,14 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
                   onClick={() => setValue('content', getValues('content') + '{{first_name}}')}
                   className="rounded bg-gray-200 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-300"
                 >
-                  {{first_name}}
+                  {'{{first_name}}'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setValue('content', getValues('content') + '{{company}}')}
                   className="rounded bg-gray-200 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-300"
                 >
-                  {{company}}
+                  {'{{company}}'}
                 </button>
               </div>
               <Controller
