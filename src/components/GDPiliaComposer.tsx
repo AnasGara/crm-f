@@ -312,8 +312,11 @@ const GDPiliaComposer: React.FC<GDPiliaComposerProps> = ({
             {t.sendButton}
           </button>
         </div>
+    
       </div>
+    
     </div>
+    
   );
 };
 
