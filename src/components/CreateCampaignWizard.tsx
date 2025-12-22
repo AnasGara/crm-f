@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { leadService, Lead } from '../services/leadsService';
 import { Dialog } from '@headlessui/react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -23,6 +24,27 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
   const [step, setStep] = useState(1);
   const { register, handleSubmit, control, watch, getValues, setValue, trigger, formState: { errors } } = useForm<CampaignFormValues>();
   const schedule = watch('schedule');
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [leadsLoading, setLeadsLoading] = useState(false);
+  const [leadsError, setLeadsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen && step === 2) {
+      const fetchLeads = async () => {
+        setLeadsLoading(true);
+        setLeadsError(null);
+        try {
+          const fetchedLeads = await leadService.getLeads();
+          setLeads(fetchedLeads);
+        } catch (error) {
+          setLeadsError('Failed to fetch leads. Please try again.');
+        } finally {
+          setLeadsLoading(false);
+        }
+      };
+      fetchLeads();
+    }
+  }, [isOpen, step]);
 
   const onSubmit = (data: CampaignFormValues) => {
     console.log(data);
@@ -110,12 +132,6 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
           </div>
         );
       case 2:
-        const mockContacts = [
-          { id: '1', name: 'John Doe', email: 'john.doe@example.com' },
-          { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com' },
-          { id: '3', name: 'Peter Jones', email: 'peter.jones@example.com' },
-          { id: '4', name: 'Mary Johnson', email: 'mary.johnson@example.com' },
-        ];
         return (
           <div>
             <h3 className="text-lg font-medium leading-6 text-gray-900">Audience</h3>
@@ -125,25 +141,29 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
               </p>
             </div>
             <div className="mt-4">
-              <fieldset>
-                <legend className="sr-only">Contacts</legend>
-                <div className="space-y-2">
-                  {mockContacts.map((contact) => (
-                    <div key={contact.id} className="flex items-center">
-                      <input
-                        id={`contact-${contact.id}`}
-                        type="checkbox"
-                        value={contact.id}
-                        {...register('audience')}
-                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                      />
-                      <label htmlFor={`contact-${contact.id}`} className="ml-3 block text-sm font-medium text-gray-700">
-                        {contact.name} ({contact.email})
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </fieldset>
+              {leadsLoading && <p>Loading leads...</p>}
+              {leadsError && <p className="text-red-600">{leadsError}</p>}
+              {!leadsLoading && !leadsError && (
+                <fieldset>
+                  <legend className="sr-only">Contacts</legend>
+                  <div className="space-y-2">
+                    {leads.map((lead) => (
+                      <div key={lead.id} className="flex items-center">
+                        <input
+                          id={`lead-${lead.id}`}
+                          type="checkbox"
+                          value={lead.id}
+                          {...register('audience')}
+                          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <label htmlFor={`lead-${lead.id}`} className="ml-3 block text-sm font-medium text-gray-700">
+                          {lead.full_name} ({lead.email})
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
             </div>
           </div>
         );
