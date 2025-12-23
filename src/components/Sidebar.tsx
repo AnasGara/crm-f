@@ -30,7 +30,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
     //{ id: 'calendar' as View, label: t('calendar'), icon: Calendar },
     { id: 'email' as View, label: t('email'), icon: Mail },
     //{ id: 'analytics' as View, label: t('analytics'), icon: BarChart3 },
-    //{ id: 'integrations' as View, label: t('integrations'), icon: Link },
+    { id: 'integrations' as View, label: t('integrations'), icon: Link },
   ];
 
   const handleNavigation = (viewId: View) => {

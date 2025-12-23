@@ -6,7 +6,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 type CampaignFormValues = {
-  name:string;
+  name: string;
   subject: string;
   sender: string;
   content: string;
@@ -19,6 +19,16 @@ interface CreateCampaignWizardProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const ProgressBar = ({ currentStep, totalSteps }) => {
+    const percentage = (currentStep / totalSteps) * 100;
+    return (
+      <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+        <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${percentage}%` }}></div>
+      </div>
+    );
+  };
+  
 
 const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onClose }) => {
   const [step, setStep] = useState(1);
@@ -48,7 +58,6 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
 
   const onSubmit = (data: CampaignFormValues) => {
     console.log(data);
-    // Handle form submission
     onClose();
   };
 
@@ -59,7 +68,6 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
         isValid = await trigger(['name', 'subject', 'sender']);
         break;
       case 2:
-        // Add validation for audience step if needed
         isValid = true;
         break;
       case 3:
@@ -85,13 +93,11 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
       case 1:
         return (
           <div>
-            <h3 className="text-lg font-medium leading-6 text-gray-900">Campaign Info</h3>
-            <div className="mt-2">
-              <p className="text-sm text-gray-500">
-                This information will be used to identify your campaign.
-              </p>
-            </div>
-            <div className="mt-4 space-y-4">
+            <h3 className="text-xl font-semibold leading-6 text-gray-900">Campaign Info</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              This information will be used to identify your campaign.
+            </p>
+            <div className="mt-6 space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   Campaign Name
@@ -134,19 +140,17 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
       case 2:
         return (
           <div>
-            <h3 className="text-lg font-medium leading-6 text-gray-900">Audience</h3>
-            <div className="mt-2">
-              <p className="text-sm text-gray-500">
-                Select the contacts or segments you want to send this campaign to.
-              </p>
-            </div>
-            <div className="mt-4">
+            <h3 className="text-xl font-semibold leading-6 text-gray-900">Audience</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Select the contacts or segments you want to send this campaign to.
+            </p>
+            <div className="mt-6">
               {leadsLoading && <p>Loading leads...</p>}
               {leadsError && <p className="text-red-600">{leadsError}</p>}
               {!leadsLoading && !leadsError && (
                 <fieldset>
                   <legend className="sr-only">Contacts</legend>
-                  <div className="space-y-2">
+                  <div className="max-h-60 overflow-y-auto space-y-4">
                     {leads.map((lead) => (
                       <div key={lead.id} className="flex items-center">
                         <input
@@ -170,13 +174,11 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
       case 3:
         return (
           <div>
-            <h3 className="text-lg font-medium leading-6 text-gray-900">Email Content</h3>
-            <div className="mt-2">
-              <p className="text-sm text-gray-500">
-                Compose the email content using the rich text editor below.
-              </p>
-            </div>
-            <div className="mt-4">
+            <h3 className="text-xl font-semibold leading-6 text-gray-900">Email Content</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Compose the email content using the rich text editor below.
+            </p>
+            <div className="mt-6">
               <div className="flex space-x-2 mb-2">
                 <button
                   type="button"
@@ -206,16 +208,14 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
       case 4:
         return (
           <div>
-            <h3 className="text-lg font-medium leading-6 text-gray-900">Schedule</h3>
-            <div className="mt-2">
-              <p className="text-sm text-gray-500">
-                Choose when you want to send this campaign.
-              </p>
-            </div>
-            <div className="mt-4 space-y-4">
+            <h3 className="text-xl font-semibold leading-6 text-gray-900">Schedule</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Choose when you want to send this campaign.
+            </p>
+            <div className="mt-6 space-y-6">
               <fieldset>
                 <legend className="sr-only">Scheduling Options</legend>
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <div className="flex items-center">
                     <input
                       id="schedule-now"
@@ -263,13 +263,11 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
         const values = getValues();
         return (
           <div>
-            <h3 className="text-lg font-medium leading-6 text-gray-900">Review & Confirm</h3>
-            <div className="mt-2">
-              <p className="text-sm text-gray-500">
-                Please review the campaign details before sending.
-              </p>
-            </div>
-            <div className="mt-4 space-y-4">
+            <h3 className="text-xl font-semibold leading-6 text-gray-900">Review & Confirm</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Please review the campaign details before sending.
+            </p>
+            <div className="mt-6 space-y-4">
               <div>
                 <h4 className="text-sm font-medium text-gray-500">Campaign Name</h4>
                 <p className="mt-1 text-sm text-gray-900">{values.name}</p>
@@ -300,15 +298,16 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="w-full max-w-lg rounded bg-white p-6">
+        <Dialog.Panel className="w-full max-w-2xl rounded-lg bg-white p-8 shadow-xl">
+        <ProgressBar currentStep={step} totalSteps={5} />
           <form onSubmit={handleSubmit(onSubmit)}>
             {renderStep()}
-            <div className="mt-4 flex justify-between">
+            <div className="mt-8 flex justify-between">
               <button
                 type="button"
                 onClick={() => setStep(step - 1)}
                 disabled={step === 1}
-                className="rounded bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
+                className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50"
               >
                 Back
               </button>
@@ -316,7 +315,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
                   Next
                 </button>
@@ -324,7 +323,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
               {step === 5 && (
                 <button
                   type="submit"
-                  className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                  className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
                 >
                   Confirm & Send
                 </button>
@@ -337,4 +336,4 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
   );
 };
 
-export default CreateCampaignWizard;
+export default CreateCampaignWizard;  

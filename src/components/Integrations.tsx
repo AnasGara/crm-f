@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Check, X, Settings, Globe, Calendar, Mail, Database, Zap, ExternalLink } from 'lucide-react';
+import emailProviderService from '../services/emailProviderService';
 
 interface Integration {
   id: number;
@@ -14,6 +15,26 @@ interface Integration {
 }
 
 const Integrations: React.FC = () => {
+  const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const response = await emailProviderService.getEmailProviderStatus();
+        if (response.success && response.data?.provider === 'google') {
+          setIsGoogleConnected(true);
+        } else {
+          setIsGoogleConnected(false);
+        }
+      } catch (error) {
+        setIsGoogleConnected(false);
+        console.error('Failed to get email provider status:', error);
+      }
+    };
+
+    checkStatus();
+  }, []);
+
   const [integrations, setIntegrations] = useState<Integration[]>([
     {
       id: 1,
@@ -30,7 +51,7 @@ const Integrations: React.FC = () => {
       name: 'Gmail Integration',
       description: 'Send emails directly from CRM and track email interactions',
       category: 'email',
-      status: 'connected',
+      status: 'available', // This will be updated dynamically by useEffect
       icon: '📧',
       features: ['Email tracking', 'Template management', 'Auto-logging'],
       lastSync: '2024-01-16T09:15:00Z',
@@ -96,6 +117,33 @@ const Integrations: React.FC = () => {
       setupUrl: 'https://hubspot.com/integrations/gdpilia',
     },
   ]);
+
+  useEffect(() => {
+    setIntegrations(prevIntegrations =>
+      prevIntegrations.map(integration =>
+        integration.id === 2
+          ? { ...integration, status: isGoogleConnected ? 'connected' : 'available' }
+          : integration
+      )
+    );
+  }, [isGoogleConnected]);
+
+  const handleConnectGoogle = () => {
+    window.location.href = 'http://127.0.0.1:8000/email-provider/google/redirect';
+  };
+
+  const handleDisconnectGoogle = async () => {
+    try {
+      const response = await emailProviderService.disconnectEmailProvider();
+      if (response.success) {
+        setIsGoogleConnected(false);
+      } else {
+        console.error('Failed to disconnect email provider:', response.message);
+      }
+    } catch (error) {
+      console.error('Failed to disconnect email provider:', error);
+    }
+  };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -284,7 +332,23 @@ const Integrations: React.FC = () => {
             )}
 
             <div className="flex items-center justify-between">
-              {integration.status === 'connected' ? (
+              {integration.id === 2 ? (
+                isGoogleConnected ? (
+                  <div className="flex items-center space-x-2">
+                    <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                      Configure
+                    </button>
+                    <button onClick={handleDisconnectGoogle} className="text-red-600 hover:text-red-700 text-sm font-medium">
+                      Disconnect
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={handleConnectGoogle} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center space-x-2">
+                    <Plus size={16} />
+                    <span>Connect</span>
+                  </button>
+                )
+              ) : integration.status === 'connected' ? (
                 <div className="flex items-center space-x-2">
                   <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
                     Configure
