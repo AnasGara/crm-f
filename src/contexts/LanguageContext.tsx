@@ -72,7 +72,7 @@ const translations = {
     createAccount: 'Créer un compte',
     firstName: 'Prénom',
     lastName: 'Nom',
-    email: 'Email Manager',
+    email: 'Email',
     company: 'Entreprise',
     password: 'Mot de passe',
     confirmPassword: 'Confirmer le mot de passe',

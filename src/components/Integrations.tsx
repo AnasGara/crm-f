@@ -129,13 +129,26 @@ const Integrations: React.FC = () => {
   }, [isGoogleConnected]);
 
   const handleConnectGoogle = () => {
-    window.location.href = 'http://127.0.0.1:8000/email-provider/google/redirect';
+    if (!token) {
+      console.error('No auth token found');
+      return;
+    }
+
+    // Using query param (dev/testing). For production, consider fetch + redirect approach
+    const url = `http://localhost:8000/api/gmail/connect?token=${encodeURIComponent(token)}`;
+
+    window.open(
+      url,
+      'GoogleConnectPopup',
+      'width=600,height=600,resizable=yes,scrollbars=yes'
+    );
   };
 
   const handleDisconnectGoogle = async () => {
     try {
       const response = await emailProviderService.disconnectEmailProvider();
       if (response.success) {
+        // TODO: backend: DELETE /user/email-provider
         setIsGoogleConnected(false);
       } else {
         console.error('Failed to disconnect email provider:', response.message);

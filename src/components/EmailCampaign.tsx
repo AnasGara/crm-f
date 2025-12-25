@@ -36,7 +36,7 @@ const EmailCampaignComponent: React.FC = () => {
   }, []);
 
   const handleConnect = () => {
-    window.location.href = 'http://127.0.0.1:8000/email-provider/google/redirect';
+    window.location.href = 'http://localhost:8000/email-provider/google/redirect';
   };
 
   const handleDisconnect = async () => {
