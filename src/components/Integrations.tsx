@@ -129,6 +129,7 @@ const Integrations: React.FC = () => {
   }, [isGoogleConnected]);
 
   const handleConnectGoogle = () => {
+    //if routes are not protected we get "Attempt to read property "id" on null"
     if (!token) {
       console.error('No auth token found');
       return;
