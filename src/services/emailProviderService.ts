@@ -10,6 +10,27 @@ export interface EmailProvider {
 }
 
 const emailProviderService = {
+
+   testConnection: async () => {
+    const response = await httpClient.get('/email-provider/test-connection');
+    return response.data;
+  },
+  
+  sendTestEmail: async (toEmail = null) => {
+    const data = toEmail ? { to_email: toEmail } : {};
+    const response = await httpClient.post('/email-provider/send-test-email', data);
+    return response.data;
+  },
+  
+  refreshToken: async () => {
+    const response = await httpClient.post('/email-provider/refresh-token');
+    return response.data;
+  },
+  
+  getDetailedStatus: async () => {
+    const response = await httpClient.get('/email-provider/test-connection');
+    return response.data;
+  }, 
 getEmailProviderStatus: async (token?: string): Promise<ApiResponse<EmailProvider>> => {
     return null
     /*httpClient.get<EmailProvider>('/user/email-provider', {
