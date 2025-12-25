@@ -1,4 +1,5 @@
 import { httpClient, ApiResponse } from './api';
+import { API_ENDPOINTS } from '../utils/constants';
 
 export interface EmailProvider {
   id: number;
@@ -30,7 +31,7 @@ getEmailProviderStatus: async (token?: string): Promise<ApiResponse<EmailProvide
   */
  ,
  connectEmailProvider: async (): Promise<{ url: string }> => {
-  const response = await httpClient.get<{ url: string }>('/email-provider/google/redirect');
+  const response = await httpClient.get<{ url: string }>(API_ENDPOINTS.EMAIL_PROVIDER.GOOGLE_REDIRECT);
   if (!response || !response.data) {
     throw new Error('No OAuth URL returned from server');
   }
