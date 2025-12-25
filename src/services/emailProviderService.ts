@@ -1,5 +1,4 @@
-import { httpClient, ApiResponse, TokenManager } from './api';
-import { API_ENDPOINTS } from '../utils/constants';
+import { TokenManager } from './api';
 
 export interface EmailProvider {
   id: number;
@@ -11,75 +10,49 @@ export interface EmailProvider {
 }
 
 const emailProviderService = {
-  /**
-   * Get the current status of the user's email provider
-   */
-  getEmailProviderStatus: async (token?: string): Promise<ApiResponse<EmailProvider>> => {
-    try {
-      const response = await httpClient.get<EmailProvider>('/user/email-provider', {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error: any) {
-      console.error('Error fetching email provider status:', error);
-      return {
-        success: false,
-        message: error.message || 'Failed to fetch email provider status',
-      };
-    }
-  },
-
-  /**
-   * Disconnect the user's connected email provider
-   */
-  disconnectEmailProvider: async (token?: string): Promise<ApiResponse<any>> => {
-    try {
-      const response = await httpClient.delete('/user/email-provider', {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error: any) {
-      console.error('Error disconnecting email provider:', error);
-      return {
-        success: false,
-        message: error.message || 'Failed to disconnect email provider',
-      };
-    }
-  },
-
-  /**
-   * Get Google OAuth URL from backend and return it.
-   * The frontend should redirect the user or open a popup with this URL.
-   */
   connectEmailProvider: async (): Promise<{ url: string }> => {
+    const token = TokenManager.getToken();
+    if (!token) throw new Error('No auth token found');
+
+    const response = await fetch('http://localhost:8000/email-provider/google/redirect', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get Google OAuth URL');
+    }
+
+    const data = await response.json();
+    if (!data?.url) throw new Error('No OAuth URL returned from server');
+
+    return data;
+  },
+
+  getEmailProviderStatus: async (): Promise<EmailProvider | null> => {
     try {
       const token = TokenManager.getToken();
-
-      const response = await fetch('http://localhost:8000/email-provider/google/redirect', {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : '',
-        },
+      const response = await fetch('http://localhost:8000/user/email-provider', {
+        headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch {
+      return null;
+    }
+  },
 
-      if (!response.ok) {
-        throw new Error('Failed to get Google OAuth URL');
-      }
-
-      const data = await response.json();
-      if (!data || !data.url) {
-        throw new Error('No OAuth URL returned from server');
-      }
-
-      return data;
-    } catch (error: any) {
-      console.error('Error fetching Google OAuth URL:', error);
-      throw error;
+  disconnectEmailProvider: async (): Promise<boolean> => {
+    try {
+      const token = TokenManager.getToken();
+      const response = await fetch('http://localhost:8000/user/email-provider', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.ok;
+    } catch {
+      return false;
     }
   },
 };
