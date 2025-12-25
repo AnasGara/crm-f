@@ -11,7 +11,7 @@ export interface EmailProvider {
 
 const emailProviderService = {
 getEmailProviderStatus: async (token?: string): Promise<ApiResponse<EmailProvider>> => {
-    return null 
+    return null
     /*httpClient.get<EmailProvider>('/user/email-provider', {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
@@ -30,7 +30,7 @@ getEmailProviderStatus: async (token?: string): Promise<ApiResponse<EmailProvide
   */
  ,
  connectEmailProvider: async (): Promise<{ url: string }> => {
-  const response = await httpClient.get<{ url: string }>('/gmail/connect');
+  const response = await httpClient.get<{ url: string }>('/email-provider/google/redirect');
   if (!response || !response.data) {
     throw new Error('No OAuth URL returned from server');
   }

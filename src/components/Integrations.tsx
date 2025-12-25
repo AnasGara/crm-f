@@ -128,21 +128,16 @@ const Integrations: React.FC = () => {
     );
   }, [isGoogleConnected]);
 
-  const handleConnectGoogle = () => {
-    //if routes are not protected we get "Attempt to read property "id" on null"
-    if (!token) {
-      console.error('No auth token found');
-      return;
+  const handleConnectGoogle = async () => {
+    try {
+      const response = await emailProviderService.connectEmailProvider();
+      if (response && response.url) {
+        window.location.href = response.url;
+      }
+    } catch (error) {
+      console.error('Failed to get Google OAuth URL:', error);
+      // Optionally, display a user-friendly error message
     }
-
-    // Using query param (dev/testing). For production, consider fetch + redirect approach
-    const url = `http://localhost:8000/api/gmail/connect?token=${encodeURIComponent(token)}`;
-
-    window.open(
-      url,
-      'GoogleConnectPopup',
-      'width=600,height=600,resizable=yes,scrollbars=yes'
-    );
   };
 
   const handleDisconnectGoogle = async () => {

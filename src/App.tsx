@@ -18,9 +18,10 @@ import Integrations from './components/Integrations';
 import Settings from './components/Settings';
 import JoinOrganization from './components/JoinOrganization';
 import OrganizationManagement from './components/OrganizationManagement';
+import GoogleCallback from './components/GoogleCallback';
 // authService might still be needed by LandingPage, or LandingPage uses useAuth for login action
 
-export type View = 'dashboard' | 'contacts' | 'leads' | 'opportunities' | 'tasks' | 'calendar' | 'email' | 'analytics' | 'integrations' | 'settings' | 'join-organization' | 'organization-management';
+export type View = 'dashboard' | 'contacts' | 'leads' | 'opportunities' | 'tasks' | 'calendar' | 'email' | 'analytics' | 'integrations' | 'settings' | 'join-organization' | 'organization-management' | 'google-callback';
 
 function App() {
   console.log('App component rendering');
@@ -101,6 +102,8 @@ function App() {
         return <JoinOrganization searchTerm={searchTerm} />;
       case 'organization-management':
         return <OrganizationManagement />;
+      case 'google-callback':
+        return <GoogleCallback />;
     case 'leads':
         return <Leads searchTerm={searchTerm} />;
       default:
