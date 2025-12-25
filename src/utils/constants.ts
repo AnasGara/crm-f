@@ -127,11 +127,6 @@ export const API_ENDPOINTS = {
     STATUS: '/integrations/status',
   },
   
-  // Email Provider
-  EMAIL_PROVIDER: {
-    GOOGLE_REDIRECT: '/email-provider/google/redirect',
-  },
-
   // Notifications
   NOTIFICATIONS: {
     BASE: '/notifications',
