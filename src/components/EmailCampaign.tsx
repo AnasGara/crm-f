@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import emailProviderService, { EmailProvider } from '../services/emailProviderService';
 import emailCampaignService, { EmailCampaign } from '../services/emailCampaignService';
+import { API_ENDPOINTS } from '../utils/constants';
 import './EmailCampaign.css';
 
 const EmailCampaignComponent: React.FC = () => {
@@ -36,7 +37,7 @@ const EmailCampaignComponent: React.FC = () => {
   }, []);
 
   const handleConnect = () => {
-    window.location.href = 'http://localhost:8000/email-provider/google/redirect';
+    window.location.href = `http://localhost:8000${API_ENDPOINTS.EMAIL_PROVIDER.GOOGLE_REDIRECT}`;
   };
 
   const handleDisconnect = async () => {
