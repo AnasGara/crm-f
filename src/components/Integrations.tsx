@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Check, X, Settings, Globe, Calendar, Mail, Database, Zap, ExternalLink } from 'lucide-react';
 import emailProviderService from '../services/emailProviderService';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface Integration {
   id: number;
@@ -13,11 +14,34 @@ interface Integration {
   lastSync?: string;
   setupUrl?: string;
 }
-
 const Integrations: React.FC = () => {
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // Check for success/error in URL params
+    const params = new URLSearchParams(location.search);
+    const connected = params.get('connected');
+    const provider = params.get('provider');
+    const message = params.get('message');
+
+    if (connected === 'success' && provider === 'google') {
+      // Show success message
+      alert('Successfully connected Google account!');
+      setIsGoogleConnected(true);
+      
+      // Clear the URL parameters
+      navigate('/integrations', { replace: true });
+      
+    } else if (connected === 'error') {
+      // Show error message
+      alert('Failed to connect: ' + decodeURIComponent(message || 'Unknown error'));
+      
+      // Clear the URL parameters
+      navigate('/integrations', { replace: true });
+    }
+
     const checkStatus = async () => {
       try {
         const response = await emailProviderService.getEmailProviderStatus();
@@ -33,8 +57,8 @@ const Integrations: React.FC = () => {
     };
 
     checkStatus();
-  }, []);
-
+  }, [location, navigate]);
+  
   const [integrations, setIntegrations] = useState<Integration[]>([
     {
       id: 1,
@@ -139,7 +163,7 @@ const Integrations: React.FC = () => {
       // Optionally, display a user-friendly error message
     }
   };
-
+/* */
   const handleDisconnectGoogle = async () => {
     try {
       const response = await emailProviderService.disconnectEmailProvider();
