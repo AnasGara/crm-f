@@ -59,9 +59,17 @@ const Integrations: React.FC = () => {
       setIsGoogleConnected(false);
     }
   };
-  
   const [integrations, setIntegrations] = useState<Integration[]>([
-  
+    {
+      id: 1,
+      name: 'Google Calendar',
+      description: 'Sync appointments and meetings with your Google Calendar',
+      category: 'calendar',
+      status: 'connected',
+      icon: '📅',
+      features: ['Two-way sync', 'Meeting reminders', 'Automatic scheduling'],
+      lastSync: '2024-01-16T10:30:00Z',
+    },
     {
       id: 2,
       name: 'Gmail Integration',
@@ -69,8 +77,68 @@ const Integrations: React.FC = () => {
       category: 'email',
       status: 'available',
       icon: '📧',
-      features: ['Email sending', 'Template management', 'Auto-logging'],
-    }
+      features: ['Email tracking', 'Template management', 'Auto-logging'],
+    },
+    {
+      id: 3,
+      name: 'Website Forms',
+      description: 'Capture leads from your website contact forms',
+      category: 'website',
+      status: 'connected',
+      icon: '🌐',
+      features: ['Lead capture', 'Form analytics', 'Auto-assignment'],
+      lastSync: '2024-01-16T08:45:00Z',
+    },
+    {
+      id: 4,
+      name: 'Zapier',
+      description: 'Connect with 5000+ apps through Zapier automation',
+      category: 'automation',
+      status: 'available',
+      icon: '⚡',
+      features: ['Workflow automation', 'Data sync', 'Custom triggers'],
+      setupUrl: 'https://zapier.com/apps/gdpilia/integrations',
+    },
+    {
+      id: 5,
+      name: 'Slack',
+      description: 'Get CRM notifications and updates in your Slack channels',
+      category: 'communication',
+      status: 'available',
+      icon: '💬',
+      features: ['Real-time notifications', 'Deal updates', 'Team collaboration'],
+      setupUrl: 'https://slack.com/apps/gdpilia',
+    },
+    {
+      id: 6,
+      name: 'Microsoft Outlook',
+      description: 'Sync with Outlook calendar and email',
+      category: 'email',
+      status: 'available',
+      icon: '📮',
+      features: ['Calendar sync', 'Email integration', 'Contact sync'],
+      setupUrl: 'https://outlook.com/gdpilia',
+    },
+    {
+      id: 7,
+      name: 'Salesforce',
+      description: 'Import data from Salesforce CRM',
+      category: 'database',
+      status: 'error',
+      icon: '☁️',
+      features: ['Data migration', 'Contact import', 'Deal sync'],
+      lastSync: '2024-01-15T14:20:00Z',
+    },
+    {
+      id: 8,
+      name: 'HubSpot',
+      description: 'Sync marketing data and contacts with HubSpot',
+      category: 'database',
+      status: 'available',
+      icon: '🎯',
+      features: ['Marketing automation', 'Lead scoring', 'Analytics sync'],
+      setupUrl: 'https://hubspot.com/integrations/gdpilia',
+    },
   ]);
 
   useEffect(() => {
@@ -111,15 +179,15 @@ const Integrations: React.FC = () => {
     try {
       const response = await emailProviderService.disconnectEmailProvider('google');
       if (response.success) {
-        alert('Successfully disconnected from Google OAuth!');
+   //     alert('Successfully disconnected from Google OAuth!');
         setIsGoogleConnected(false);
         await checkConnectionStatus();
       } else {
-        alert('Failed to disconnect: ' + response.message);
+      //  alert('Failed to disconnect: ' + response.message);
       }
     } catch (error) {
       console.error('Failed to disconnect email provider:', error);
-      alert('Failed to disconnect from Google OAuth. Please try again.');
+    //  alert('Failed to disconnect from Google OAuth. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -202,7 +270,10 @@ const Integrations: React.FC = () => {
           <h3 className="text-lg font-semibold text-gray-900">Integrations</h3>
           <p className="text-sm text-gray-600">Connect GDPilia with your favorite tools and services</p>
         </div>
-      
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+          <Plus size={20} />
+          <span>Request Integration</span>
+        </button>
       </div>
 
       {/* Integration Stats */}
@@ -324,6 +395,13 @@ const Integrations: React.FC = () => {
                 isGoogleConnected ? (
                   <div className="flex items-center space-x-2">
                  
+                  <button 
+                      onClick={handleConfigureGoogle}
+                      disabled={loading}
+                      className="text-blue-600 hover:text-blue-700 text-sm font-medium disabled:opacity-50"
+                    >
+                      Configure
+                    </button>
                     <button 
                       onClick={handleDisconnectGoogle}
                       disabled={loading}
