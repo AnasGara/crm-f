@@ -18,6 +18,7 @@ import {
   UserIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
+import { CheckIcon, TicketCheckIcon } from "lucide-react";
 
 const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -574,9 +575,14 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
   href={lead.profile_url}
   target="_blank"
   rel="noopener noreferrer"
-  onClick={() => {
+  onClick={(e) => {
+    e.preventDefault();
     if (!lead.treated) {
-      handleMarkAsTreated(lead.id);
+      handleMarkAsTreated(lead.id).then(() => {
+        window.open(lead.profile_url, "_blank");
+      });
+    } else {
+      window.open(lead.profile_url, "_blank");
     }
   }}
   className="inline-flex items-center justify-center
@@ -624,7 +630,7 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                             onClick={() => handleMarkAsTreated(lead.id)}
                             className="p-1 text-green-500 hover:text-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                           >
-                            <EyeIcon className="h-5 w-5" />
+                            <CheckIcon className="h-5 w-5" />
                           </button>
                         )}
                       </div>
