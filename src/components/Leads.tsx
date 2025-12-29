@@ -13,8 +13,9 @@ import {
   TrashIcon,
   UserIcon,
   EnvelopeIcon,
+  ChevronUpDownIcon,
 } from "@heroicons/react/24/outline";
-import StatusBadge from "./StatusBadge";
+import StatusIcon from "./StatusIcon";
 
 type Status = "to_be_treated" | "qualified" | "archived";
 
@@ -33,7 +34,15 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
   const [filterCompany, setFilterCompany] = useState("");
   const [filterPosition, setFilterPosition] = useState("");
   const [filterStatus, setFilterStatus] = useState<Status | "">("");
-  const [sortNewestFirst, setSortNewestFirst] = useState(true);
+  const [filterName, setFilterName] = useState("");
+  
+  const [sortConfig, setSortConfig] = useState<{
+    key: "full_name" | "created_at" | "location" | "company" | "position";
+    direction: "asc" | "desc";
+  }>({
+    key: "created_at",
+    direction: "desc",
+  });
   const [showFilters, setShowFilters] = useState(false);
 
   // Fetch leads from API with filters
@@ -42,7 +51,7 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
       setLoading(true);
       try {
         const filters: any = {
-          full_name: searchTerm,
+          full_name: searchTerm || filterName,
           location: filterLocation,
           company: filterCompany,
           position: filterPosition,
@@ -57,45 +66,85 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
       }
     };
     fetchLeads();
-  }, [searchTerm, filterLocation, filterCompany, filterPosition, filterStatus]);
+  }, [searchTerm, filterName, filterLocation, filterCompany, filterPosition, filterStatus]);
+
+  // Helper function to format status display
+  const formatStatusDisplay = (status: Status | "") => {
+    if (!status) return "All";
+    
+    switch (status) {
+      case "to_be_treated":
+        return "Non treated";
+      case "qualified":
+        return "Qualified";
+      case "archived":
+        return "Archived";
+      default:
+        return status.charAt(0).toUpperCase() + status.slice(1).replace("_", " ");
+    }
+  };
+
+  // Helper function to get status text for display
+  const getStatusText = (status: Status) => {
+    switch (status) {
+      case "to_be_treated":
+        return "Non treated";
+      case "qualified":
+        return "Qualified";
+      case "archived":
+        return "Archived";
+      default:
+        return status;
+    }
+  };
 
   // Compute filtered & sorted leads
   const filteredLeads = [...leads].filter((lead) => {
     return (
       (filterStatus ? lead.status === filterStatus : true) &&
+      (filterName ? lead.full_name.toLowerCase().includes(filterName.toLowerCase()) : true) &&
       (filterCompany ? lead.company.toLowerCase().includes(filterCompany.toLowerCase()) : true) &&
       (filterPosition ? lead.position.toLowerCase().includes(filterPosition.toLowerCase()) : true) &&
       (filterLocation ? lead.location.toLowerCase().includes(filterLocation.toLowerCase()) : true)
     );
   });
 
-  const sortedLeads = filteredLeads.sort((a, b) =>
-    sortNewestFirst
-      ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      : new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-  );
+  const sortedLeads = [...filteredLeads].sort((a, b) => {
+    const aValue = a[sortConfig.key];
+    const bValue = b[sortConfig.key];
+    
+    if (sortConfig.key === "created_at") {
+      return sortConfig.direction === "asc"
+        ? new Date(aValue as string).getTime() - new Date(bValue as string).getTime()
+        : new Date(bValue as string).getTime() - new Date(aValue as string).getTime();
+    } else {
+      return sortConfig.direction === "asc"
+        ? String(aValue).localeCompare(String(bValue))
+        : String(bValue).localeCompare(String(aValue));
+    }
+  });
 
   const totalPages = Math.ceil(sortedLeads.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentLeads = sortedLeads.slice(startIndex, endIndex);
 
- const handleSaveLead = async (leadData: CreateLeadData | UpdateLeadData) => {
-  try {
-    if (editingLead) {
-      const updatedLead = await leadService.updateLead(editingLead.id, leadData as UpdateLeadData);
-      setLeads(leads.map((l) => (l.id === editingLead.id ? updatedLead : l)));
-    } else {
-      const newLead = await leadService.createLead(leadData as CreateLeadData);
-      setLeads([newLead, ...leads]);
+  const handleSaveLead = async (leadData: CreateLeadData | UpdateLeadData) => {
+    try {
+      if (editingLead) {
+        const updatedLead = await leadService.updateLead(editingLead.id, leadData as UpdateLeadData);
+        setLeads(leads.map((l) => (l.id === editingLead.id ? updatedLead : l)));
+      } else {
+        const newLead = await leadService.createLead(leadData as CreateLeadData);
+        setLeads([newLead, ...leads]);
+      }
+      setIsModalOpen(false);
+      setEditingLead(null);
+    } catch (error: any) {
+      console.error('Save lead error:', error);
+      setError(`Failed to save lead: ${error.message || 'Unknown error'}`);
     }
-    setIsModalOpen(false);
-    setEditingLead(null);
-  } catch (error: any) { // Add error parameter
-    console.error('Save lead error:', error); // Log the error
-    setError(`Failed to save lead: ${error.message || 'Unknown error'}`);
-  }
-};
+  };
 
   const handleDeleteLead = async (id: number) => {
     if (!window.confirm("Are you sure you want to delete this lead?")) return;
@@ -120,11 +169,69 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
   const goToPage = (page: number) => setCurrentPage(Math.max(1, Math.min(page, totalPages)));
 
   const resetFilters = () => {
+    setFilterName("");
     setFilterLocation("");
     setFilterCompany("");
     setFilterPosition("");
     setFilterStatus("");
     setCurrentPage(1);
+  };
+
+  const handleColumnClick = (column: "full_name" | "location" | "company" | "position" | "created_at") => {
+    // If clicking the same column, toggle direction
+    if (sortConfig.key === column) {
+      setSortConfig({
+        key: column,
+        direction: sortConfig.direction === "asc" ? "desc" : "asc",
+      });
+    } else {
+      // If clicking a different column, set it as sort key with default asc
+      setSortConfig({
+        key: column,
+        direction: "asc",
+      });
+    }
+    
+    // Set the corresponding filter input based on column
+    if (column === "full_name") {
+      // For name, just show sort indicator, or prompt for filter input
+      // You could also add a direct filter input for name
+    }
+  };
+
+  const handleFilterInput = (column: "full_name" | "location" | "company" | "position", value: string) => {
+    switch (column) {
+      case "full_name":
+        setFilterName(value);
+        break;
+      case "location":
+        setFilterLocation(value);
+        break;
+      case "company":
+        setFilterCompany(value);
+        break;
+      case "position":
+        setFilterPosition(value);
+        break;
+    }
+    setCurrentPage(1);
+  };
+
+  const clearColumnFilter = (column: "full_name" | "location" | "company" | "position") => {
+    switch (column) {
+      case "full_name":
+        setFilterName("");
+        break;
+      case "location":
+        setFilterLocation("");
+        break;
+      case "company":
+        setFilterCompany("");
+        break;
+      case "position":
+        setFilterPosition("");
+        break;
+    }
   };
 
   if (loading)
@@ -161,7 +268,7 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
           >
             <FunnelIcon className="h-4 w-4 mr-2" />
             Filters
-            {(filterLocation || filterCompany || filterPosition || filterStatus) && (
+            {(filterName || filterLocation || filterCompany || filterPosition || filterStatus) && (
               <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">Active</span>
             )}
           </button>
@@ -177,114 +284,135 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filter Panel */}
       {showFilters && (
-        <div className="mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-          <div className="flex justify-between items-center mb-4">
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-gray-900">Filters</h3>
-            <button onClick={() => setShowFilters(false)} className="text-gray-400 hover:text-gray-500">
-              <XMarkIcon className="h-5 w-5" />
+            <button
+              onClick={resetFilters}
+              className="inline-flex items-center px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Clear All
             </button>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Company */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
-              <input
-                type="text"
-                value={filterCompany}
-                onChange={(e) => {
-                  setFilterCompany(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder="Filter by company..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-            {/* Position */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
-              <input
-                type="text"
-                value={filterPosition}
-                onChange={(e) => {
-                  setFilterPosition(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder="Filter by position..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-            {/* Location */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-              <input
-                type="text"
-                value={filterLocation}
-                onChange={(e) => {
-                  setFilterLocation(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder="Filter by location..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-            {/* Status & Sort */}
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select
-                  value={filterStatus}
-                  onChange={(e) => {
-                    setFilterStatus(e.target.value as Status | "");
-                    setCurrentPage(1);
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                >
-                  <option value="">All Statuses</option>
-                  <option value="to_be_treated">To be treated</option>
-                  <option value="qualified">Qualified</option>
-                  <option value="archived">Archived</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Sort Order</label>
-                <button
-                  onClick={() => setSortNewestFirst(!sortNewestFirst)}
-                  className={`w-full px-3 py-2 border rounded-md text-sm font-medium flex items-center justify-center ${
-                    sortNewestFirst ? "bg-purple-50 border-purple-300 text-purple-700" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  {sortNewestFirst ? (
-                    <>
-                      <ArrowDownIcon className="h-4 w-4 mr-2" />
-                      Newest First
-                    </>
-                  ) : (
-                    <>
-                      <ArrowUpIcon className="h-4 w-4 mr-2" />
-                      Oldest First
-                    </>
-                  )}
-                </button>
+              <label htmlFor="name-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                Name
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="name-filter"
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  value={filterName}
+                  onChange={(e) => handleFilterInput("full_name", e.target.value)}
+                  placeholder="Filter by name"
+                />
+                {filterName && (
+                  <button
+                    onClick={() => clearColumnFilter("full_name")}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <XMarkIcon className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
-          </div>
-
-          <div className="mt-4 flex justify-between items-center">
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">{filteredLeads.length}</span> leads found
-              {filteredLeads.length !== leads.length && ` (filtered from ${leads.length} total)`}
+            <div>
+              <label htmlFor="company-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                Company
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="company-filter"
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  value={filterCompany}
+                  onChange={(e) => handleFilterInput("company", e.target.value)}
+                  placeholder="Filter by company"
+                />
+                {filterCompany && (
+                  <button
+                    onClick={() => clearColumnFilter("company")}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <XMarkIcon className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="flex space-x-2">
-              <button onClick={resetFilters} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                Clear Filters
-              </button>
+            <div>
+              <label htmlFor="location-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                Location
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="location-filter"
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  value={filterLocation}
+                  onChange={(e) => handleFilterInput("location", e.target.value)}
+                  placeholder="Filter by location"
+                />
+                {filterLocation && (
+                  <button
+                    onClick={() => clearColumnFilter("location")}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <XMarkIcon className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+            <div>
+              <label htmlFor="position-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                Position
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="position-filter"
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  value={filterPosition}
+                  onChange={(e) => handleFilterInput("position", e.target.value)}
+                  placeholder="Filter by position"
+                />
+                {filterPosition && (
+                  <button
+                    onClick={() => clearColumnFilter("position")}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <XMarkIcon className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Tabs */}
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+            {(["", "to_be_treated", "qualified", "archived"] as const).map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(status)}
+                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
+                  filterStatus === status
+                    ? "border-indigo-500 text-indigo-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                {formatStatusDisplay(status)}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
 
       {/* Modals */}
       <LeadForm isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveLead} lead={editingLead} />
@@ -296,12 +424,112 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="py-3.5 pl-6 pr-3 text-left text-sm font-semibold text-gray-900">Name</th>
+                <th
+                  className="py-3.5 pl-6 pr-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 group"
+                  onClick={() => handleColumnClick("full_name")}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>Name</span>
+                    <div className="flex items-center">
+                      {filterName && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 mr-1">
+                          Filtered
+                        </span>
+                      )}
+                      <ChevronUpDownIcon className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                    </div>
+                  </div>
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      className="block w-full text-xs rounded border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                      value={filterName}
+                      onChange={(e) => handleFilterInput("full_name", e.target.value)}
+                      placeholder="Type to filter..."
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </th>
                 <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
                 <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Email</th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Company</th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Position</th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Location</th>
+                <th
+                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 group"
+                  onClick={() => handleColumnClick("company")}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>Company</span>
+                    <div className="flex items-center">
+                      {filterCompany && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 mr-1">
+                          Filtered
+                        </span>
+                      )}
+                      <ChevronUpDownIcon className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                    </div>
+                  </div>
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      className="block w-full text-xs rounded border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                      value={filterCompany}
+                      onChange={(e) => handleFilterInput("company", e.target.value)}
+                      placeholder="Type to filter..."
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </th>
+                <th
+                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 group"
+                  onClick={() => handleColumnClick("position")}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>Position</span>
+                    <div className="flex items-center">
+                      {filterPosition && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 mr-1">
+                          Filtered
+                        </span>
+                      )}
+                      <ChevronUpDownIcon className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                    </div>
+                  </div>
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      className="block w-full text-xs rounded border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                      value={filterPosition}
+                      onChange={(e) => handleFilterInput("position", e.target.value)}
+                      placeholder="Type to filter..."
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </th>
+                <th
+                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 group"
+                  onClick={() => handleColumnClick("location")}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>Location</span>
+                    <div className="flex items-center">
+                      {filterLocation && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 mr-1">
+                          Filtered
+                        </span>
+                      )}
+                      <ChevronUpDownIcon className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                    </div>
+                  </div>
+                  <div className="mt-1">
+                    <input
+                      type="text"
+                      className="block w-full text-xs rounded border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                      value={filterLocation}
+                      onChange={(e) => handleFilterInput("location", e.target.value)}
+                      placeholder="Type to filter..."
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </th>
                 <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Profile</th>
                 <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Actions</th>
               </tr>
@@ -327,7 +555,14 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-3 py-4"><StatusBadge status={lead.status} /></td>
+                    <td className="px-3 py-4">
+                      <div className="flex items-center">
+                        <StatusIcon status={lead.status} />
+                        <span className="ml-2 text-sm text-gray-900">
+                          {getStatusText(lead.status)}
+                        </span>
+                      </div>
+                    </td>
                     <td className="px-3 py-4 text-sm text-gray-900 font-medium">{lead.email}</td>
                     <td className="px-3 py-4 text-sm text-gray-900 font-medium">{lead.company}</td>
                     <td className="px-3 py-4 text-sm text-gray-900">{lead.position}</td>
@@ -363,6 +598,58 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Showing <span className="font-medium">{startIndex + 1}</span> to <span className="font-medium">{Math.min(endIndex, sortedLeads.length)}</span> of <span className="font-medium">{sortedLeads.length}</span> results
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => goToPage(pageNum)}
+                      className={`px-3 py-1 border rounded text-sm font-medium ${
+                        currentPage === pageNum
+                          ? "border-indigo-500 bg-indigo-50 text-indigo-600"
+                          : "border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
