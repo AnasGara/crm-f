@@ -26,7 +26,6 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
-  const [comment, setComment] = useState<string>("");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -160,23 +159,6 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
       }
     } catch (err) {
       setError("Failed to delete lead");
-    }
-  };
-
-  const handleSaveComment = async (id: number) => {
-    try {
-      const leadToUpdate = leads.find((lead) => lead.id === id);
-      if (leadToUpdate) {
-        const updatedLead = await leadService.updateLead(id, {
-          comments: comment,
-        });
-        setLeads(
-          leads.map((lead) => (lead.id === id ? updatedLead : lead))
-        );
-        setComment("");
-      }
-    } catch (err) {
-      console.error("Failed to save comment:", err);
     }
   };
 
@@ -645,24 +627,6 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                             <EyeIcon className="h-5 w-5" />
                           </button>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colSpan={7} className="px-6 py-4">
-                      <div className="flex items-center">
-                        <textarea
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                          placeholder="Add a comment..."
-                          defaultValue={lead.comments || ""}
-                          onChange={(e) => setComment(e.target.value)}
-                        />
-                        <button
-                          onClick={() => handleSaveComment(lead.id)}
-                          className="ml-2 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                          Save
-                        </button>
                       </div>
                     </td>
                   </tr>

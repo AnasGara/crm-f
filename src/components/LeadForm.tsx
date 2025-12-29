@@ -24,6 +24,7 @@ const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, onSave, lead }) =>
     message_length: 0,
     generated_at: '',
     total_leads: 0,
+    comments: '',
   });
 
   useEffect(() => {
@@ -44,9 +45,23 @@ const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, onSave, lead }) =>
         message_length: 0,
         generated_at: '',
         total_leads: 0,
+        comments: '',
       });
     }
   }, [lead]);
+
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, [onClose]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -62,16 +77,21 @@ const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, onSave, lead }) =>
     return null;
   }
 
-  return (
-    <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50" id="my-modal">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-4">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-2xl font-bold text-gray-900">{lead ? 'Edit Lead' : 'Create Lead'}</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-          </div>
+return (
+  <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50" id="my-modal">
+    <div className="bg-white rounded-lg shadow-2xl w-full max-w-3xl mx-4 max-h-[80vh] overflow-y-auto">
+      <div className="p-4">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-xl font-bold text-gray-900">
+            {lead ? 'Edit Lead' : 'Create Lead'}
+          </h3>
+
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.keys(formData).map(key => (
@@ -87,6 +107,17 @@ const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, onSave, lead }) =>
                   />
                 </div>
               ))}
+            </div>
+            <div>
+              <label htmlFor="comments" className="block text-sm font-medium text-gray-700">Commednts</label>
+              <textarea
+                name="comments"
+                id="comments"
+                value={(formData as any).comments}
+                onChange={handleChange}
+                rows={4}
+                className="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
             </div>
             <div className="flex justify-end space-x-3 pt-4">
               <button

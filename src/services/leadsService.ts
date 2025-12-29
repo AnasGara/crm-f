@@ -43,6 +43,7 @@ export interface CreateLeadData {
   message_length: number;
   generated_at: string;
   total_leads: number;
+  comments?: string;
 }
 
 export interface UpdateLeadData extends Partial<CreateLeadData> {}
