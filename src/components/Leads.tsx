@@ -26,6 +26,7 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [comment, setComment] = useState<string>("");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -35,7 +36,7 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
   const [filterLocation, setFilterLocation] = useState<string>("");
   const [filterCompany, setFilterCompany] = useState<string>("");
   const [filterPosition, setFilterPosition] = useState<string>("");
-  const [showOnlyUnseen, setShowOnlyUnseen] = useState<boolean>(false);
+  const [showOnlyUntreated, setShowOnlyUntreated] = useState<boolean>(false);
   const [sortNewestFirst, setSortNewestFirst] = useState<boolean>(true);
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
@@ -86,15 +87,15 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
         ? safeToString(lead.position).includes(filterPosition.toLowerCase())
         : true;
 
-      // Filter by "unseen" if showOnlyUnseen is true
-      const matchesSeenFilter = showOnlyUnseen ? !lead.seen : true;
+      // Filter by "untreated" if showOnlyUntreated is true
+      const matchesTreatedFilter = showOnlyUntreated ? !lead.treated : true;
 
       return (
         matchesSearch &&
         matchesLocation &&
         matchesCompany &&
         matchesPosition &&
-        matchesSeenFilter
+        matchesTreatedFilter
       );
     })
     // Sort by newest first (reverse order)
@@ -162,21 +163,31 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
     }
   };
 
-  const handleMarkAsSeen = async (id: number) => {
+  const handleSaveComment = async (id: number) => {
     try {
       const leadToUpdate = leads.find((lead) => lead.id === id);
       if (leadToUpdate) {
-        await leadService.updateLead(id, {
-          ...leadToUpdate,
-          seen: true,
-        } as UpdateLeadData);
-
+        const updatedLead = await leadService.updateLead(id, {
+          comments: comment,
+        });
         setLeads(
-          leads.map((lead) => (lead.id === id ? { ...lead, seen: true } : lead))
+          leads.map((lead) => (lead.id === id ? updatedLead : lead))
         );
+        setComment("");
       }
     } catch (err) {
-      console.error("Failed to mark lead as seen:", err);
+      console.error("Failed to save comment:", err);
+    }
+  };
+
+  const handleMarkAsTreated = async (id: number) => {
+    try {
+      const updatedLead = await leadService.markAsTreated(id);
+      setLeads(
+        leads.map((lead) => (lead.id === id ? updatedLead : lead))
+      );
+    } catch (err) {
+      console.error("Failed to mark lead as treated:", err);
     }
   };
 
@@ -190,7 +201,7 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
     setFilterLocation("");
     setFilterCompany("");
     setFilterPosition("");
-    setShowOnlyUnseen(false);
+    setShowOnlyUntreated(false);
     setCurrentPage(1);
   };
 
@@ -239,7 +250,7 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
             {(filterLocation ||
               filterCompany ||
               filterPosition ||
-              showOnlyUnseen) && (
+              showOnlyUntreated) && (
               <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
                 Active
               </span>
@@ -339,19 +350,19 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                 </label>
                 <button
                   onClick={() => {
-                    setShowOnlyUnseen(!showOnlyUnseen);
+                    setShowOnlyUntreated(!showOnlyUntreated);
                     setCurrentPage(1);
                   }}
                   className={`w-full px-3 py-2 border rounded-md text-sm font-medium flex items-center justify-center ${
-                    showOnlyUnseen
+                    showOnlyUntreated
                       ? "bg-blue-50 border-blue-300 text-blue-700"
                       : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                   }`}
                 >
-                  {showOnlyUnseen ? (
+                  {showOnlyUntreated ? (
                     <>
                       <EyeSlashIcon className="h-4 w-4 mr-2" />
-                      Showing Unseen Only
+                      Showing Untreated Only
                     </>
                   ) : (
                     <>
@@ -435,9 +446,9 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                 >
                   <div className="flex items-center">
                     Name
-                    {showOnlyUnseen && (
+                    {showOnlyUntreated && (
                       <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                        Unseen
+                        Untreated
                       </span>
                     )}
                   </div>
@@ -511,10 +522,11 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                 </tr>
               ) : (
                 currentLeads.map((lead) => (
+                  <>
                   <tr
                     key={lead.id}
                     className={`hover:bg-gray-50 transition-colors duration-150 ${
-                      !lead.seen ? "bg-blue-50" : ""
+                      !lead.treated ? "bg-blue-50" : ""
                     }`}
                   >
                     <td className="py-4 pl-6 pr-3">
@@ -529,16 +541,16 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                             <p className="text-sm font-medium text-gray-900">
                               {lead.full_name}
                             </p>
-                            {!lead.seen && (
+                            {!lead.treated && (
                               <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                 New
                               </span>
                             )}
                           </div>
-                          {lead.createdAt && (
+                          {lead.created_at && (
                             <p className="text-xs text-gray-500">
                               Added{" "}
-                              {new Date(lead.createdAt).toLocaleDateString()}
+                              {new Date(lead.created_at).toLocaleDateString()}
                             </p>
                           )}
                         </div>
@@ -581,8 +593,8 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
   target="_blank"
   rel="noopener noreferrer"
   onClick={() => {
-    if (!lead.seen) {
-      handleMarkAsSeen(lead.id);
+    if (!lead.treated) {
+      handleMarkAsTreated(lead.id);
     }
   }}
   className="inline-flex items-center justify-center
@@ -625,9 +637,36 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                         >
                           <EnvelopeIcon className="h-5 w-5" />
                         </button>
+                        {!lead.treated && (
+                          <button
+                            onClick={() => handleMarkAsTreated(lead.id)}
+                            className="p-1 text-green-500 hover:text-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                          >
+                            <EyeIcon className="h-5 w-5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
+                  <tr>
+                    <td colSpan={7} className="px-6 py-4">
+                      <div className="flex items-center">
+                        <textarea
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="Add a comment..."
+                          defaultValue={lead.comments || ""}
+                          onChange={(e) => setComment(e.target.value)}
+                        />
+                        <button
+                          onClick={() => handleSaveComment(lead.id)}
+                          className="ml-2 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  </>
                 ))
               )}
             </tbody>

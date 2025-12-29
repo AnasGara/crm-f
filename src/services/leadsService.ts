@@ -19,6 +19,8 @@ export interface Lead {
     total_leads: number;
     created_at: string;
     updated_at: string;
+    treated: boolean;
+    comments: string;
 }
 
 export interface LeadsApiResponse {
@@ -104,6 +106,19 @@ class LeadService {
       }
     } catch (error) {
       console.error('Delete lead error:', error);
+      throw error;
+    }
+  }
+
+  async markAsTreated(id: number): Promise<Lead> {
+    try {
+      const response = await httpClient.patch<{lead: Lead}>(`/leads/${id}/treated`, {});
+      if (response.success && response.data) {
+        return response.data.lead;
+      }
+      throw new Error(response.message || 'Failed to mark lead as treated');
+    } catch (error) {
+      console.error('Mark as treated error:', error);
       throw error;
     }
   }
