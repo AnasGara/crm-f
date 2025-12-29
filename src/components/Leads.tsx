@@ -177,9 +177,19 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
     }
   };
 
+  const handleSetTreated = async (lead: Lead) => {
+  try {
+    const updatedLead = await leadService.markAsTreated(lead.id);
+    setLeads(leads.map((l) => (l.id === lead.id ? updatedLead : l)));
+  } catch (error) {
+    setError("Failed to mark lead as treated");
+  }
+};
+
+
   // New function to handle profile click
   const handleProfileClick = async (lead: Lead) => {
-    handleToggleTreated(lead)
+    handleSetTreated(lead)
     try {
       // Open profile in new tab immediately
       window.open(lead.profile_url, "_blank");
