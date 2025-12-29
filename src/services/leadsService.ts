@@ -146,19 +146,6 @@ class LeadService {
     }
   }
 
-  async markAsViewed(id: number): Promise<Lead> {
-    try {
-      // This endpoint should only update treated to true without changing status
-      const response = await httpClient.patch<{ lead: Lead }>(`/leads/${id}/viewed`, {});
-      if (response.success && response.data) {
-        return response.data.lead;
-      }
-      throw new Error(response.message || 'Failed to mark lead as viewed');
-    } catch (error) {
-      console.error('Mark as viewed error:', error);
-      throw error;
-    }
-  }
 }
 
 export const leadService = new LeadService();
