@@ -19,7 +19,7 @@ export interface Lead {
     total_leads: number;
     created_at: string;
     updated_at: string;
-    treated: boolean;
+    status: 'to_be_treated' | 'qualified' | 'archived';
     comments: string;
 }
 
@@ -44,6 +44,7 @@ export interface CreateLeadData {
   generated_at: string;
   total_leads: number;
   comments?: string;
+  status?: 'to_be_treated' | 'qualified' | 'archived';
 }
 
 export interface UpdateLeadData extends Partial<CreateLeadData> {}
@@ -51,20 +52,27 @@ export interface UpdateLeadData extends Partial<CreateLeadData> {}
 class LeadService {
   async getLeads(): Promise<Lead[]> {
     try {
-      const currentUser = authService.getStoredUser();
-      if (!currentUser || !currentUser.organisation_id) {
-        throw new Error('User not authenticated or no organization');
-      }
-
-      const response = await httpClient.get<LeadsApiResponse>(`/organisations/${currentUser.organisation_id}/leads`);
-      
+      const response = await httpClient.get<Lead[]>(`/leads`);
       if (response.success && response.data) {
-        return response.data.data || [];
+        return response.data;
       }
       
       throw new Error(response.message || 'Failed to fetch leads');
     } catch (error) {
       console.error('Get leads error:', error);
+      throw error;
+    }
+  }
+
+  async filterLeads(filterData: any): Promise<LeadsApiResponse> {
+    try {
+      const response = await httpClient.post<LeadsApiResponse>(`/leads/filter`, filterData);
+      if (response.success && response.data) {
+        return response.data;
+      }
+      throw new Error(response.message || 'Failed to filter leads');
+    } catch (error) {
+      console.error('Filter leads error:', error);
       throw error;
     }
   }
@@ -107,19 +115,6 @@ class LeadService {
       }
     } catch (error) {
       console.error('Delete lead error:', error);
-      throw error;
-    }
-  }
-
-  async markAsTreated(id: number): Promise<Lead> {
-    try {
-      const response = await httpClient.patch<{lead: Lead}>(`/leads/${id}/treated`, {});
-      if (response.success && response.data) {
-        return response.data.lead;
-      }
-      throw new Error(response.message || 'Failed to mark lead as treated');
-    } catch (error) {
-      console.error('Mark as treated error:', error);
       throw error;
     }
   }
