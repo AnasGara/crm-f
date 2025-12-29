@@ -182,10 +182,11 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
     try {
       // Open profile in new tab immediately
       window.open(lead.profile_url, "_blank");
-      
+
       // If lead is not treated yet, mark it as viewed (treated = true without changing status)
       if (!lead.treated) {
-        const updatedLead = await leadService.markAsViewed(lead.id);
+        // Directly update the lead's treated status to true
+        const updatedLead = await leadService.updateLead(lead.id, { treated: true });
         setLeads(leads.map((l) => (l.id === lead.id ? updatedLead : l)));
       }
     } catch (error) {
