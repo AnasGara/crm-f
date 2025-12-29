@@ -21,6 +21,7 @@ export interface Lead {
     updated_at: string;
     status: 'to_be_treated' | 'qualified' | 'archived';
     comments: string;
+    treated: boolean;
 }
 
 export interface LeadsApiResponse {
@@ -115,6 +116,46 @@ class LeadService {
       }
     } catch (error) {
       console.error('Delete lead error:', error);
+      throw error;
+    }
+  }
+
+  async markAsTreated(id: number): Promise<Lead> {
+    try {
+      const response = await httpClient.patch<{ lead: Lead }>(`/leads/${id}/treated`, {});
+      if (response.success && response.data) {
+        return response.data.lead;
+      }
+      throw new Error(response.message || 'Failed to mark lead as treated');
+    } catch (error) {
+      console.error('Mark as treated error:', error);
+      throw error;
+    }
+  }
+
+  async markAsUntreated(id: number): Promise<Lead> {
+    try {
+      const response = await httpClient.patch<{ lead: Lead }>(`/leads/${id}/untreated`, {});
+      if (response.success && response.data) {
+        return response.data.lead;
+      }
+      throw new Error(response.message || 'Failed to mark lead as untreated');
+    } catch (error) {
+      console.error('Mark as untreated error:', error);
+      throw error;
+    }
+  }
+
+  async markAsViewed(id: number): Promise<Lead> {
+    try {
+      // This endpoint should only update treated to true without changing status
+      const response = await httpClient.patch<{ lead: Lead }>(`/leads/${id}/viewed`, {});
+      if (response.success && response.data) {
+        return response.data.lead;
+      }
+      throw new Error(response.message || 'Failed to mark lead as viewed');
+    } catch (error) {
+      console.error('Mark as viewed error:', error);
       throw error;
     }
   }

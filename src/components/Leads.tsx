@@ -166,6 +166,35 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
     }
   };
 
+  const handleToggleTreated = async (lead: Lead) => {
+    try {
+      const updatedLead = await (lead.treated
+        ? leadService.markAsUntreated(lead.id)
+        : leadService.markAsTreated(lead.id));
+      setLeads(leads.map((l) => (l.id === lead.id ? updatedLead : l)));
+    } catch (error) {
+      setError("Failed to update lead treated status");
+    }
+  };
+
+  // New function to handle profile click
+  const handleProfileClick = async (lead: Lead) => {
+    try {
+      // Open profile in new tab immediately
+      window.open(lead.profile_url, "_blank");
+      
+      // If lead is not treated yet, mark it as viewed (treated = true without changing status)
+      if (!lead.treated) {
+        const updatedLead = await leadService.markAsViewed(lead.id);
+        setLeads(leads.map((l) => (l.id === lead.id ? updatedLead : l)));
+      }
+    } catch (error) {
+      console.error("Failed to mark lead as viewed:", error);
+      // Optional: show error notification
+      setError("Failed to update lead status");
+    }
+  };
+
   const goToPage = (page: number) => setCurrentPage(Math.max(1, Math.min(page, totalPages)));
 
   const resetFilters = () => {
@@ -550,7 +579,14 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                           <span className="font-semibold text-blue-600">{lead.full_name.charAt(0).toUpperCase()}</span>
                         </div>
                         <div className="ml-4">
-                          <p className="text-sm font-medium text-gray-900">{lead.full_name}</p>
+                          <p className="text-sm font-medium text-gray-900 flex items-center">
+                            {lead.full_name}
+                            {!lead.treated && (
+                              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                New
+                              </span>
+                            )}
+                          </p>
                           {lead.created_at && <p className="text-xs text-gray-500">Added {new Date(lead.created_at).toLocaleDateString()}</p>}
                         </div>
                       </div>
@@ -568,25 +604,30 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                     <td className="px-3 py-4 text-sm text-gray-900">{lead.position}</td>
                     <td className="px-3 py-4 text-sm text-gray-900">{lead.location}</td>
                     <td className="px-3 py-4">
-                      <a
-                        href={lead.profile_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (lead.status === "to_be_treated") {
-                            handleStatusChange(lead.id, "qualified").then(() => window.open(lead.profile_url, "_blank"));
-                          } else {
-                            window.open(lead.profile_url, "_blank");
-                          }
-                        }}
+                      <button
+                        onClick={() => handleProfileClick(lead)}
                         className="inline-flex items-center justify-center p-2 rounded-full text-blue-600 bg-blue-50 cursor-pointer hover:text-blue-700 hover:bg-blue-100 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        title="View profile"
                       >
                         <UserIcon className="h-5 w-5" />
-                      </a>
+                      </button>
                     </td>
                     <td className="px-3 py-4">
                       <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleToggleTreated(lead)}
+                          className={`p-1 ${
+                            lead.treated
+                              ? "text-yellow-500 hover:text-yellow-700"
+                              : "text-green-500 hover:text-green-700"
+                          }`}
+                        >
+                          {lead.treated ? (
+                            <EyeSlashIcon className="h-5 w-5" />
+                          ) : (
+                            <EyeIcon className="h-5 w-5" />
+                          )}
+                        </button>
                         <button onClick={() => { setEditingLead(lead); setIsModalOpen(true); }} className="p-1 text-gray-500 hover:text-gray-700"><PencilIcon className="h-5 w-5" /></button>
                         <button onClick={() => handleDeleteLead(lead.id)} className="p-1 text-red-500 hover:text-red-700"><TrashIcon className="h-5 w-5" /></button>
                         <button onClick={() => { setEditingLead(lead); setIsComposerOpen(true); }} className="p-1 text-gray-500 hover:text-gray-700"><EnvelopeIcon className="h-5 w-5" /></button>
