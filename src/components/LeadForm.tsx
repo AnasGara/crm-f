@@ -94,7 +94,7 @@ return (
         </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.keys(formData).map(key => (
+              {Object.keys(formData).filter(key =>key !== 'comments').map(key => (
                 <div key={key}>
                   <label htmlFor={key} className="block text-sm font-medium text-gray-700 capitalize">{key.replace(/_/g, ' ')}</label>
                   <input
@@ -108,8 +108,9 @@ return (
                 </div>
               ))}
             </div>
+           
             <div>
-              <label htmlFor="comments" className="block text-sm font-medium text-gray-700">Commednts</label>
+              <label htmlFor="comments" className="block text-sm font-medium text-gray-700">Comments</label>
               <textarea
                 name="comments"
                 id="comments"
