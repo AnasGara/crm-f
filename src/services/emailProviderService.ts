@@ -136,12 +136,22 @@ refreshToken: async (): Promise<RefreshTokenResponse> => {
       '/email-providers/refresh-token'
     );
 
-    return response.data as RefreshTokenResponse;
+    if (!response?.data || typeof response.data !== 'object') {
+      return {
+        success: false,
+        message: 'Invalid refresh response from server'
+      };
+    }
+
+    return {
+      success: Boolean((response.data as any).success),
+      message: (response.data as any).message || 'Refresh completed'
+    };
+
   } catch (error) {
     return handleApiError(error, 'Failed to refresh token');
   }
 },
-
   
   // Get detailed status (same as test connection)
   getDetailedStatus: async (): Promise<TestConnectionResponse> => {
