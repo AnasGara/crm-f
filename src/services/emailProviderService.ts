@@ -170,28 +170,36 @@ refreshToken: async (): Promise<RefreshTokenResponse> => {
   },
   
   // Get connection status for a specific provider
-  getConnectionStatus: async (provider: string = 'google'): Promise<ConnectionStatus> => {
-    try {
-      const response = await httpClient.get<ConnectionStatus>(`/email-providers/${provider}/status`);
-      
-      if (!isValidResponse<ConnectionStatus>(response)) {
-        throw new Error('Invalid response format from server');
-      }
-      
-      return response.data;
-    } catch (error) {
-      console.error('Failed to get connection status:', error);
-      
-      // Return default disconnected status on error
-      return {
-        connected: false,
-        provider_email: null,
-        connected_at: null,
-        expires_at: null,
-        provider
-      };
+ // In your emailProviderService.ts, update getConnectionStatus
+getConnectionStatus: async (provider: string = 'google'): Promise<ConnectionStatus> => {
+  try {
+    console.log(`Fetching connection status for ${provider}...`);
+    
+    const response = await httpClient.get<ConnectionStatus>(`/email-providers/${provider}/status`);
+    
+    console.log('Raw API response:', response);
+    
+    if (!isValidResponse<ConnectionStatus>(response)) {
+      console.error('Invalid response format:', response);
+      throw new Error('Invalid response format from server');
     }
-  },
+    
+    console.log('Parsed connection status:', response.data);
+    
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get connection status:', error);
+    
+    // Return default disconnected status on error
+    return {
+      connected: false,
+      provider_email: null,
+      connected_at: null,
+      expires_at: null,
+      provider
+    };
+  }
+},
   
   // Disconnect from a provider
 // Disconnect from a provider

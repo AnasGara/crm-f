@@ -166,7 +166,7 @@ function App() {
           <div className="min-h-screen bg-mesh flex">
             <Sidebar activeView={activeView} onViewChange={setActiveView} />
             <div className="flex-1 flex flex-col lg:ml-0">
-              {/* Token Warning Banner */}
+              {/* Token Warning Banner 
               {showTokenWarning && (
                 <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
                   <div className="flex">
@@ -198,7 +198,7 @@ function App() {
                     </div>
                   </div>
                 </div>
-              )}
+              )}*/}
               
               <Header
                 searchTerm={searchTerm}

@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Check, X, Settings, Globe, Calendar, Mail, Database, Zap, ExternalLink } from 'lucide-react';
 import emailProviderService, { ConnectionStatus } from '../services/emailProviderService';
 import { useLocation, useNavigate } from 'react-router-dom';
-import TokenStatusIndicator from './TokenStatusIndicator';
-
 
 interface Integration {
   id: number;
@@ -21,8 +19,14 @@ const Integrations: React.FC = () => {
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus | null>(null);
   const [loading, setLoading] = useState(false);
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Initial connection status check
+  useEffect(() => {
+    checkConnectionStatus();
+  }, []);
 
   useEffect(() => {
     // Check for success/error in URL params
@@ -33,37 +37,44 @@ const Integrations: React.FC = () => {
 
     if (connected === 'success' && provider === 'google') {
       // Show success message
-     // alert('Successfully connected Google account!');
-      setIsGoogleConnected(true);
+      // alert('Successfully connected Google account!');
+      
+      // Re-check connection status after successful connection
+      checkConnectionStatus();
       
       // Clear the URL parameters
       navigate('/integrations', { replace: true });
       
     } else if (connected === 'error') {
       // Show error message
-    //  alert('Failed to connect: ' + decodeURIComponent(message || 'Unknown error'));
+      // alert('Failed to connect: ' + decodeURIComponent(message || 'Unknown error'));
+      
+      // Re-check connection status
+      checkConnectionStatus();
       
       // Clear the URL parameters
       navigate('/integrations', { replace: true });
     }
-
-    // Check connection status
-    checkConnectionStatus();
   }, [location, navigate]);
 
   const checkConnectionStatus = async () => {
     try {
+      setLoading(true);
       const status = await emailProviderService.getConnectionStatus('google');
+      console.log('Connection status received:', status); // Debug log
       setConnectionStatus(status);
       setIsGoogleConnected(status.connected);
+      setInitialCheckDone(true);
     } catch (error) {
       console.error('Failed to get connection status:', error);
       setIsGoogleConnected(false);
+      setConnectionStatus(null);
+    } finally {
+      setLoading(false);
     }
   };
   
   const [integrations, setIntegrations] = useState<Integration[]>([
-  
     {
       id: 2,
       name: 'Gmail Integration',
@@ -75,6 +86,7 @@ const Integrations: React.FC = () => {
     }
   ]);
 
+  // Update integration status based on connection
   useEffect(() => {
     setIntegrations(prevIntegrations =>
       prevIntegrations.map(integration =>
@@ -98,7 +110,7 @@ const Integrations: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to get Google OAuth URL:', error);
-    //  alert('Failed to connect to Google OAuth. Please try again.');
+      // alert('Failed to connect to Google OAuth. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -113,23 +125,24 @@ const Integrations: React.FC = () => {
     try {
       const response = await emailProviderService.disconnectEmailProvider('google');
       if (response.success) {
-        alert('Successfully disconnected from Google OAuth!');
-        setIsGoogleConnected(false);
-        await checkConnectionStatus();
+        // alert('Successfully disconnected from Google OAuth!');
+        await checkConnectionStatus(); // Re-check status after disconnect
       } else {
-        alert('Failed to disconnect: ' + response.message);
+        // alert('Failed to disconnect: ' + response.message);
+        await checkConnectionStatus(); // Still re-check status
       }
     } catch (error) {
       console.error('Failed to disconnect email provider:', error);
-      alert('Failed to disconnect from Google OAuth. Please try again.');
+      // alert('Failed to disconnect from Google OAuth. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleConfigureGoogle = async () => {
-    // You could add configuration options here
- //   alert('Configuration options coming soon!');
+  // Debug function to manually check connection
+  const handleDebugCheck = async () => {
+    console.log('Manual connection check...');
+    await checkConnectionStatus();
   };
 
   const getCategoryIcon = (category: string) => {
@@ -179,12 +192,7 @@ const Integrations: React.FC = () => {
 
   const categories = [
     { id: 'all', name: 'All Integrations', count: integrations.length },
-    { id: 'calendar', name: 'Calendar', count: integrations.filter(i => i.category === 'calendar').length },
     { id: 'email', name: 'Email', count: integrations.filter(i => i.category === 'email').length },
-    { id: 'website', name: 'Website', count: integrations.filter(i => i.category === 'website').length },
-    { id: 'database', name: 'Database', count: integrations.filter(i => i.category === 'database').length },
-    { id: 'automation', name: 'Automation', count: integrations.filter(i => i.category === 'automation').length },
-    { id: 'communication', name: 'Communication', count: integrations.filter(i => i.category === 'communication').length },
   ];
 
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -204,9 +212,28 @@ const Integrations: React.FC = () => {
           <h3 className="text-lg font-semibold text-gray-900">Integrations</h3>
           <p className="text-sm text-gray-600">Connect GDPilia with your favorite tools and services</p>
         </div>
-      
+        
+        {/* Debug button - remove in production
+        <button 
+          onClick={handleDebugCheck}
+          className="text-xs text-gray-500 hover:text-gray-700"
+          title="Debug: Check connection status"
+        >
+          Debug Status
+        </button> */}
       </div>
 
+      {/* Connection Status Debug Info 
+      {process.env.NODE_ENV === 'development' && connectionStatus && (
+        <div className="mb-4 p-3 bg-gray-100 rounded-lg text-sm">
+          <div className="font-medium">Debug Info:</div>
+          <div>Connected: {connectionStatus.connected ? 'Yes' : 'No'}</div>
+          <div>Email: {connectionStatus.provider_email || 'Not available'}</div>
+          <div>Initial Check: {initialCheckDone ? 'Done' : 'Pending'}</div>
+        </div>
+      )}*/}
+
+      {/* Rest of your component remains the same... */}
       {/* Integration Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -315,9 +342,17 @@ const Integrations: React.FC = () => {
               </div>
             )}
 
-            {connectionStatus?.connected && integration.id === 2 && (
+            {/* Fixed: Always show connection info if we have it */}
+            {connectionStatus && connectionStatus.connected && integration.id === 2 && (
               <div className="text-xs text-blue-600 mb-4">
-                Connected as: {connectionStatus.provider_email}
+                Connected as: {connectionStatus.provider_email || 'user'}
+              </div>
+            )}
+
+            {/* Also show when we know it's not connected */}
+            {connectionStatus && !connectionStatus.connected && integration.id === 2 && (
+              <div className="text-xs text-gray-500 mb-4">
+                Not connected
               </div>
             )}
 
@@ -325,7 +360,6 @@ const Integrations: React.FC = () => {
               {integration.id === 2 ? (
                 isGoogleConnected ? (
                   <div className="flex items-center space-x-2">
-                 
                     <button 
                       onClick={handleDisconnectGoogle}
                       disabled={loading}
@@ -393,8 +427,6 @@ const Integrations: React.FC = () => {
       )}
     </div>
   );
-
-
 };
 
 export default Integrations;
