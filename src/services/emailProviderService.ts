@@ -130,19 +130,18 @@ const emailProviderService = {
   },
   
   // Refresh token manually
-  refreshToken: async (): Promise<RefreshTokenResponse> => {
-    try {
-      const response = await httpClient.post<RefreshTokenResponse>('/email-providers/refresh-token');
-      
-      if (!isValidResponse<RefreshTokenResponse>(response)) {
-        throw new Error('Invalid response format from server');
-      }
-      
-      return response.data;
-    } catch (error) {
-      return handleApiError(error, 'Failed to refresh token');
-    }
-  },
+refreshToken: async (): Promise<RefreshTokenResponse> => {
+  try {
+    const response = await httpClient.post<RefreshTokenResponse>(
+      '/email-providers/refresh-token'
+    );
+
+    return response.data as RefreshTokenResponse;
+  } catch (error) {
+    return handleApiError(error, 'Failed to refresh token');
+  }
+},
+
   
   // Get detailed status (same as test connection)
   getDetailedStatus: async (): Promise<TestConnectionResponse> => {

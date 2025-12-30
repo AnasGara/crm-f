@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Check, X, Settings, Globe, Calendar, Mail, Database, Zap, ExternalLink } from 'lucide-react';
 import emailProviderService, { ConnectionStatus } from '../services/emailProviderService';
 import { useLocation, useNavigate } from 'react-router-dom';
+import TokenStatusIndicator from './TokenStatusIndicator';
+
 
 interface Integration {
   id: number;
@@ -391,6 +393,8 @@ const Integrations: React.FC = () => {
       )}
     </div>
   );
+
+
 };
 
 export default Integrations;
