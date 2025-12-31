@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { leadService, Lead } from '../services/leadsService';
+import emailService, { EmailCapability } from '../services/emailService';
 import { Dialog } from '@headlessui/react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { Link } from 'react-router-dom';
 
 type CampaignFormValues = {
   name: string;
@@ -37,9 +39,33 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
   const [leads, setLeads] = useState<Lead[]>([]);
   const [leadsLoading, setLeadsLoading] = useState(false);
   const [leadsError, setLeadsError] = useState<string | null>(null);
+  const [emailCapability, setEmailCapability] = useState<EmailCapability | null>(null);
+  const [emailCapabilityLoading, setEmailCapabilityLoading] = useState(true);
+  const [emailCapabilityError, setEmailCapabilityError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isOpen && step === 2) {
+    if (isOpen) {
+      const checkEmailCapability = async () => {
+        try {
+          setEmailCapabilityLoading(true);
+          const response = await emailService.checkEmailCapability();
+          if (response.success) {
+            setEmailCapability(response.data!);
+          } else {
+            setEmailCapabilityError(response.message || 'Failed to check email capability.');
+          }
+        } catch (error) {
+          setEmailCapabilityError('An unexpected error occurred.');
+        } finally {
+          setEmailCapabilityLoading(false);
+        }
+      };
+      checkEmailCapability();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && step === 3) {
       const fetchLeads = async () => {
         setLeadsLoading(true);
         setLeadsError(null);
@@ -56,24 +82,38 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
     }
   }, [isOpen, step]);
 
-  const onSubmit = (data: CampaignFormValues) => {
-    console.log(data);
-    onClose();
+  const onSubmit = async (data: CampaignFormValues) => {
+    try {
+      const payload = {
+        lead_ids: data.audience.map(Number),
+        subject: data.subject,
+        body: data.content,
+        personalize: true, // Or get this from form
+      };
+      await emailService.sendBulkEmails(payload);
+      onClose();
+    } catch (error) {
+      console.error('Failed to send bulk emails:', error);
+      // Handle and display error to the user
+    }
   };
 
   const handleNext = async () => {
     let isValid = false;
     switch (step) {
       case 1:
-        isValid = await trigger(['name', 'subject', 'sender']);
+        isValid = emailCapability?.can_send_emails || false;
         break;
       case 2:
-        isValid = true;
+        isValid = await trigger(['name', 'subject', 'sender']);
         break;
       case 3:
-        isValid = await trigger('content');
+        isValid = true;
         break;
       case 4:
+        isValid = await trigger('content');
+        break;
+      case 5:
         isValid = await trigger('schedule');
         if (getValues('schedule') === 'later') {
           isValid = await trigger('scheduleTime');
@@ -91,6 +131,30 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
   const renderStep = () => {
     switch (step) {
       case 1:
+        return (
+          <div>
+            <h3 className="text-xl font-semibold leading-6 text-gray-900">Email Capability Check</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Checking if you can send emails through your integrated account.
+            </p>
+            <div className="mt-6">
+              {emailCapabilityLoading && <p>Checking email capabilities...</p>}
+              {emailCapabilityError && <p className="text-red-600">{emailCapabilityError}</p>}
+              {emailCapability && (
+                <div>
+                  <p>Status: {emailCapability.can_send_emails ? 'Ready to send emails' : 'Cannot send emails'}</p>
+                  <p>Message: {emailCapability.message}</p>
+                  {!emailCapability.can_send_emails && (
+                    <Link to="/integrations" className="text-blue-600 hover:underline">
+                      Go to Integrations
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      case 2:
         return (
           <div>
             <h3 className="text-xl font-semibold leading-6 text-gray-900">Campaign Info</h3>
@@ -122,8 +186,8 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
                 />
                 {errors.subject && <p className="mt-2 text-sm text-red-600">{errors.subject.message}</p>}
               </div>
-              <div>
-                <label htmlFor="sender" className="block text-sm font-medium text-gray-700">
+            {/* <div>
+               <label htmlFor="sender" className="block text-sm font-medium text-gray-700">
                   Sender Email
                 </label>
                 <input
@@ -133,11 +197,11 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
                 {errors.sender && <p className="mt-2 text-sm text-red-600">{errors.sender.message}</p>}
-              </div>
+              </div> */}  
             </div>
           </div>
         );
-      case 2:
+      case 3:
         return (
           <div>
             <h3 className="text-xl font-semibold leading-6 text-gray-900">Audience</h3>
@@ -171,7 +235,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
             </div>
           </div>
         );
-      case 3:
+      case 4:
         return (
           <div>
             <h3 className="text-xl font-semibold leading-6 text-gray-900">Email Content</h3>
@@ -205,7 +269,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
             </div>
           </div>
         );
-      case 4:
+      case 5:
         return (
           <div>
             <h3 className="text-xl font-semibold leading-6 text-gray-900">Schedule</h3>
@@ -259,7 +323,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
             </div>
           </div>
         );
-      case 5:
+      case 6:
         const values = getValues();
         return (
           <div>
@@ -276,10 +340,11 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
                 <h4 className="text-sm font-medium text-gray-500">Email Subject</h4>
                 <p className="mt-1 text-sm text-gray-900">{values.subject}</p>
               </div>
-              <div>
+       {/*       <div>
                 <h4 className="text-sm font-medium text-gray-500">Sender Email</h4>
                 <p className="mt-1 text-sm text-gray-900">{values.sender}</p>
               </div>
+        */}
               <div>
                 <h4 className="text-sm font-medium text-gray-500">Schedule</h4>
                 <p className="mt-1 text-sm text-gray-900">
@@ -299,7 +364,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <Dialog.Panel className="w-full max-w-2xl rounded-lg bg-white p-8 shadow-xl">
-        <ProgressBar currentStep={step} totalSteps={5} />
+        <ProgressBar currentStep={step} totalSteps={6} />
           <form onSubmit={handleSubmit(onSubmit)}>
             {renderStep()}
             <div className="mt-8 flex justify-between">
@@ -311,7 +376,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
               >
                 Back
               </button>
-              {step < 5 && (
+              {step < 6 && (
                 <button
                   type="button"
                   onClick={handleNext}
@@ -320,7 +385,7 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
                   Next
                 </button>
               )}
-              {step === 5 && (
+              {step === 6 && (
                 <button
                   type="submit"
                   className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"

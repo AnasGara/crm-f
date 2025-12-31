@@ -16,11 +16,8 @@ interface EmailCampaign {
   type: 'newsletter' | 'promotional' | 'follow-up' | 'announcement';
 }
 
-interface EmailProps {
-  searchTerm: string;
-}
-
-const Email: React.FC<EmailProps> = ({ searchTerm }) => {
+const Email: React.FC = () => {
+  console.log('Email component rendering');
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [campaigns, setCampaigns] = useState<EmailCampaign[]>([
     {
@@ -72,10 +69,7 @@ const Email: React.FC<EmailProps> = ({ searchTerm }) => {
     },
   ]);
 
-  const filteredCampaigns = campaigns.filter(campaign =>
-    campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    campaign.subject.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCampaigns = campaigns;
 
   const getStatusColor = (status: string) => {
     switch (status) {

@@ -119,7 +119,7 @@ function App() {
       case 'calendar':
         return <Calendar searchTerm={searchTerm} />;
       case 'email':
-        return <Email searchTerm={searchTerm} />;
+        return <Email />;
       case 'analytics':
         return <Analytics />;
       case 'integrations':
@@ -132,8 +132,6 @@ function App() {
         return <OrganizationManagement />;
       case 'google-callback':
         return <GoogleCallback />;
-      case 'leads':
-        return <Leads searchTerm={searchTerm} />;
       default:
         return <Dashboard />;
     }
