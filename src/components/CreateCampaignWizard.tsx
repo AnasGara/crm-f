@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { leadService, Lead } from '../services/leadsService';
 import emailService, { EmailCapability } from '../services/emailService';
 import { Dialog } from '@headlessui/react';
+import toast from 'react-hot-toast';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { Link } from 'react-router-dom';
@@ -91,9 +92,11 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
         personalize: true, // Or get this from form
       };
       await emailService.sendBulkEmails(payload);
+      toast.success('Campaign created and emails sent successfully!');
       onClose();
     } catch (error) {
       console.error('Failed to send bulk emails:', error);
+      toast.error('Failed to send campaign emails. Please try again.');
       // Handle and display error to the user
     }
   };
