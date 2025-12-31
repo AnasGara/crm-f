@@ -138,17 +138,50 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
               Checking if you can send emails through your integrated account.
             </p>
             <div className="mt-6">
-              {emailCapabilityLoading && <p>Checking email capabilities...</p>}
-              {emailCapabilityError && <p className="text-red-600">{emailCapabilityError}</p>}
+              {emailCapabilityLoading && (
+                <div className="flex items-center space-x-2">
+                  <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6"></div>
+                  <p>Checking email capabilities...</p>
+                </div>
+              )}
+              {emailCapabilityError && (
+                <div className="flex items-center space-x-2 text-red-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <p>{emailCapabilityError}</p>
+                </div>
+              )}
               {emailCapability && (
-                <div>
-                  <p>Status: {emailCapability.can_send_emails ? 'Ready to send emails' : 'Cannot send emails'}</p>
-                  <p>Message: {emailCapability.message}</p>
-                  {!emailCapability.can_send_emails && (
-                    <Link to="/integrations" className="text-blue-600 hover:underline">
-                      Go to Integrations
-                    </Link>
-                  )}
+                <div className={`p-4 rounded-md ${emailCapability.can_send_emails ? 'bg-green-50' : 'bg-red-50'}`}>
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      {emailCapability.can_send_emails ? (
+                        <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="ml-3">
+                      <h3 className={`text-sm font-medium ${emailCapability.can_send_emails ? 'text-green-800' : 'text-red-800'}`}>
+                        {emailCapability.can_send_emails ? 'Ready to send emails' : 'Cannot send emails'}
+                      </h3>
+                      <div className={`mt-2 text-sm ${emailCapability.can_send_emails ? 'text-green-700' : 'text-red-700'}`}>
+                        <p>{emailCapability.message}</p>
+                      </div>
+                      {!emailCapability.can_send_emails && (
+                        <div className="mt-4">
+                          <Link to="/integrations" className="text-sm font-medium text-blue-600 hover:underline">
+                            Go to Integrations
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
