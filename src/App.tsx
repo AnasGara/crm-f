@@ -21,6 +21,7 @@ import Integrations from './components/Integrations';
 import Settings from './components/Settings';
 import JoinOrganization from './components/JoinOrganization';
 import OrganizationManagement from './components/OrganizationManagement';
+import { Toaster } from 'react-hot-toast';
 import GoogleCallback from './components/GoogleCallback';
 
 export type View = 'dashboard' | 'contacts' | 'leads' | 'opportunities' | 'tasks' | 'calendar' | 'email' | 'analytics' | 'integrations' | 'settings' | 'join-organization' | 'organization-management' | 'google-callback';
@@ -161,6 +162,7 @@ function App() {
     <LanguageProvider>
       <OrganizationProvider>
         <NotificationProvider>
+          <Toaster position="bottom-right" />
           <div className="min-h-screen bg-mesh flex">
             <Sidebar activeView={activeView} onViewChange={setActiveView} />
             <div className="flex-1 flex flex-col lg:ml-0">

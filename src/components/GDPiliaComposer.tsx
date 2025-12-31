@@ -9,6 +9,8 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
+import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 import {
   checkEmailCapability,
   sendEmailToLead,
@@ -131,14 +133,14 @@ const GDPiliaComposer: React.FC<GDPiliaComposerProps> = ({
   const t = translations[language];
 
   // Generate template based on topic selection
-  const generateTemplate = () => {
+  const generateTemplate = (currentTopic: string) => {
     if (!lead || !currentUser) return { subject: "", message: "" };
 
     let newSubject = "";
     let newMessage = "";
-    
+
     if (messageType === "email") {
-      switch (topic) {
+      switch (currentTopic) {
         case "ask_for_contact":
           newSubject = t.connectionRequestSubject;
           newMessage = t.connectionRequestMessage
@@ -169,7 +171,7 @@ const GDPiliaComposer: React.FC<GDPiliaComposerProps> = ({
       }
     } else {
       // LinkedIn messages
-      switch (topic) {
+      switch (currentTopic) {
         case "ask_for_contact":
           newMessage = t.linkedinConnectionRequest
             .replace(/{{lead_name}}/g, lead.full_name)
@@ -194,32 +196,25 @@ const GDPiliaComposer: React.FC<GDPiliaComposerProps> = ({
           newMessage = "";
       }
     }
-    
+
     return { subject: newSubject, message: newMessage };
   };
 
-  // Reset edit flags when topic or message type changes
+  // Regenerate template if message type or language changes
   useEffect(() => {
-    if (isInitialRender.current) {
-      isInitialRender.current = false;
+    if (isInitialRender.current || !topic || topic === "custom") {
       return;
     }
-    
-    // Reset edit flags when topic changes
-    setIsSubjectEdited(false);
-    setIsMessageEdited(false);
-    
-    // Generate new template
-    const template = generateTemplate();
-    
-    // Only update fields if they haven't been manually edited
+
+    const template = generateTemplate(topic);
+
     if (!isSubjectEdited) {
       setSubject(template.subject);
     }
     if (!isMessageEdited) {
       setMessage(template.message);
     }
-  }, [topic, messageType, language]);
+  }, [messageType, language]);
 
   // Reset everything when composer opens
   useEffect(() => {
@@ -250,13 +245,15 @@ const GDPiliaComposer: React.FC<GDPiliaComposerProps> = ({
   const handleTopicChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newTopic = e.target.value;
     setTopic(newTopic);
-    
-    // For custom topic, don't auto-generate
-    if (newTopic === "custom") {
-      if (!isSubjectEdited) setSubject("");
-      if (!isMessageEdited) setMessage("");
-      return;
-    }
+
+    // Reset edit flags and generate new template
+    setIsSubjectEdited(false);
+    setIsMessageEdited(false);
+
+    const template = generateTemplate(newTopic);
+
+    setSubject(template.subject);
+    setMessage(template.message);
   };
 
   // Template buttons for quick insertion
@@ -330,18 +327,39 @@ const GDPiliaComposer: React.FC<GDPiliaComposerProps> = ({
           
           setSendResult(result.data);
           setSendStatus("success");
-          
-          // Close after 3 seconds
+          toast.success("Email sent successfully!");
+
           setTimeout(() => {
             onClose();
-          }, 3000);
+          }, 2000);
         } else {
           setSendStatus("error");
           setSendError(capability.message);
+          toast.error(
+            () => (
+              <span>
+                {capability.message}. Please{" "}
+                <Link
+                  to="/settings/integrations"
+                  className="text-indigo-600 hover:underline"
+                  onClick={() => toast.dismiss()}
+                >
+                  check your integration
+                </Link>
+                .
+              </span>
+            ),
+            {
+              duration: 5000,
+            }
+          );
         }
       } catch (error) {
         setSendStatus("error");
-        setSendError(error instanceof Error ? error.message : "An unexpected error occurred.");
+        const errorMessage =
+          error instanceof Error ? error.message : "An unexpected error occurred.";
+        setSendError(errorMessage);
+        toast.error(errorMessage);
         console.error("Failed to send email:", error);
       } finally {
         setIsSending(false);
