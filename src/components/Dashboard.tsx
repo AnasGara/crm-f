@@ -324,8 +324,8 @@ const Dashboard: React.FC = () => {
                 {currentUser.organisation_id && (
                   <span>🏢 Organisation #{currentUser.organisation_id}</span>
                 )}
-                <span>📅 Membre depuis {new Date(currentUser.created_at).toLocaleDateString('fr-FR')}</span>
-              </div>
+               {/* <span>📅 Membre depuis {new Date(currentUser.created_at).toLocaleDateString('fr-FR')}</span>
+               */}</div>
             )}
           </div>
           <div className="hidden lg:block">
