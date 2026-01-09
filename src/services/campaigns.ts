@@ -10,6 +10,16 @@ export const getCampaigns = async (params?: any) => {
   }
 };
 
+export const updateCampaign = async (id: number, data: any) => {
+  try {
+    const response = await httpClient.put(`/campaigns/${id}`, data);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating campaign for id ${id}:`, error);
+    throw error;
+  }
+};
+
 export const cancelCampaign = async (id: number) => {
   try {
     const response = await httpClient.post(`/campaigns/${id}/cancel`);
@@ -29,3 +39,4 @@ export const getCampaignDetails = async (id: number) => {
     throw error;
   }
 };
+  

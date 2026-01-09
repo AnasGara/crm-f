@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getCampaignDetails, cancelCampaign } from '../services/campaigns';
+import UpdateCampaignModal from './UpdateCampaignModal';
 
 // Interfaces based on the API documentation
 interface Sender {
@@ -61,6 +62,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId }) => {
   const [error, setError] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
   const handleCancelCampaign = async () => {
     if (campaign && window.confirm('Are you sure you want to cancel this campaign?')) {
@@ -83,6 +85,12 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId }) => {
         setIsCancelling(false);
       }
     }
+  };
+
+  const handleCampaignUpdate = (updatedCampaign: CampaignDetailsData) => {
+    // This will be properly implemented in the next step.
+    console.log('Campaign updated (UI update to be implemented):', updatedCampaign);
+    setCampaign({ ...campaign, ...updatedCampaign });
   };
 
   useEffect(() => {
@@ -142,6 +150,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId }) => {
   const isCancelDisabled = campaign.status === 'completed' || 
                           campaign.status === 'cancelled' || 
                           isCancelling;
+  const isUpdateVisible = campaign.status === 'draft' || campaign.status === 'scheduled';
 
   return (
     <div className="p-6 relative">
@@ -174,6 +183,14 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId }) => {
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(campaign.status)}`}>
             {campaign.status}
           </span>
+          {isUpdateVisible && (
+            <button
+              onClick={() => setIsUpdateModalOpen(true)}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Update Campaign
+            </button>
+          )}
           <button
             onClick={handleCancelCampaign}
             disabled={isCancelDisabled}
@@ -277,6 +294,12 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId }) => {
           )}
         </div>
       </div>
+       {campaign && <UpdateCampaignModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        campaign={campaign}
+        onCampaignUpdate={handleCampaignUpdate}
+      />}
     </div>
   );
 };
