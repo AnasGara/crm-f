@@ -1,0 +1,232 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - img [ref=e10]
+          - img [ref=e13]
+        - generic [ref=e15]:
+          - heading "GDPilia" [level=1] [ref=e16]
+          - paragraph [ref=e17]: CRM Alimenté par IA
+      - generic [ref=e18]:
+        - button "Se connecter" [ref=e19] [cursor=pointer]
+        - button "Commencer" [ref=e20] [cursor=pointer]
+  - generic [ref=e24]:
+    - generic [ref=e25]:
+      - img [ref=e26]
+      - generic [ref=e28]: Plateforme CRM Alimentée par IA
+    - heading "Transformez Votre Croissance d'Entreprise" [level=1] [ref=e29]:
+      - text: Transformez Votre
+      - generic [ref=e30]: Croissance d'Entreprise
+    - paragraph [ref=e31]: Rationalisez votre processus de vente, gérez les relations clients et augmentez les revenus avec notre plateforme CRM intelligente conçue pour les entreprises modernes.
+    - generic [ref=e32]:
+      - button "Essai Gratuit" [ref=e33] [cursor=pointer]:
+        - generic [ref=e34]: Essai Gratuit
+        - img [ref=e35]
+      - button "Voir la Démo" [ref=e37] [cursor=pointer]
+    - generic [ref=e38]:
+      - generic [ref=e39]:
+        - img [ref=e40]
+        - generic [ref=e42]: Essai gratuit de 14 jours
+      - generic [ref=e43]:
+        - img [ref=e44]
+        - generic [ref=e46]: Aucune carte de crédit requise
+      - generic [ref=e47]:
+        - img [ref=e48]
+        - generic [ref=e50]: Annuler à tout moment
+  - generic [ref=e52]:
+    - generic [ref=e53]:
+      - heading "Tout ce dont vous avez besoin pour Réussir" [level=2] [ref=e54]
+      - paragraph [ref=e55]: Des fonctionnalités puissantes conçues pour vous aider à gérer les clients, conclure des affaires et développer votre entreprise.
+    - generic [ref=e56]:
+      - generic [ref=e57]:
+        - img [ref=e59]
+        - heading "Gestion des Contacts" [level=3] [ref=e64]
+        - paragraph [ref=e65]: Organisez et gérez tous vos contacts professionnels en un seul endroit centralisé avec recherche et filtrage avancés.
+      - generic [ref=e66]:
+        - img [ref=e68]
+        - heading "Pipeline de Ventes" [level=3] [ref=e72]
+        - paragraph [ref=e73]: Suivez les opportunités à travers chaque étape de votre processus de vente avec une gestion visuelle du pipeline.
+      - generic [ref=e74]:
+        - img [ref=e76]
+        - heading "Planification Intelligente" [level=3] [ref=e78]
+        - paragraph [ref=e79]: Planifiez des rendez-vous, réunions et suivis avec une gestion de calendrier intégrée.
+      - generic [ref=e80]:
+        - img [ref=e82]
+        - heading "Campagnes Email" [level=3] [ref=e85]
+        - paragraph [ref=e86]: Créez et gérez des campagnes email ciblées avec des analyses avancées et de l'automatisation.
+      - generic [ref=e87]:
+        - img [ref=e89]
+        - heading "Analyses Avancées" [level=3] [ref=e91]
+        - paragraph [ref=e92]: Obtenez des insights approfondis sur les performances de votre entreprise avec des rapports et tableaux de bord complets.
+      - generic [ref=e93]:
+        - img [ref=e95]
+        - heading "Sécurité Entreprise" [level=3] [ref=e97]
+        - paragraph [ref=e98]: Sécurité de niveau bancaire avec chiffrement, contrôles d'accès sécurisés et normes de conformité.
+  - generic [ref=e100]:
+    - generic [ref=e101]:
+      - heading "Approuvé par des Milliers" [level=2] [ref=e102]
+      - paragraph [ref=e103]: Découvrez ce que nos clients disent de GDPilia
+    - generic [ref=e104]:
+      - generic [ref=e105]:
+        - generic [ref=e106]:
+          - img [ref=e107]
+          - img [ref=e109]
+          - img [ref=e111]
+          - img [ref=e113]
+          - img [ref=e115]
+        - paragraph [ref=e117]: "\"GDPilia a transformé notre processus de vente. Nous avons augmenté notre taux de conversion de 40% en seulement 3 mois.\""
+        - generic [ref=e118]:
+          - generic [ref=e119]: SJ
+          - generic [ref=e120]:
+            - generic [ref=e121]: Sarah Johnson
+            - generic [ref=e122]: PDG, TechCorp
+      - generic [ref=e123]:
+        - generic [ref=e124]:
+          - img [ref=e125]
+          - img [ref=e127]
+          - img [ref=e129]
+          - img [ref=e131]
+          - img [ref=e133]
+        - paragraph [ref=e135]: "\"Les insights alimentés par IA nous ont aidés à identifier des opportunités que nous manquions. Plateforme incroyable !\""
+        - generic [ref=e136]:
+          - generic [ref=e137]: MC
+          - generic [ref=e138]:
+            - generic [ref=e139]: Michael Chen
+            - generic [ref=e140]: Directeur des Ventes, Innovate.io
+      - generic [ref=e141]:
+        - generic [ref=e142]:
+          - img [ref=e143]
+          - img [ref=e145]
+          - img [ref=e147]
+          - img [ref=e149]
+          - img [ref=e151]
+        - paragraph [ref=e153]: "\"Le meilleur CRM que nous ayons jamais utilisé. L'interface est intuitive et les fonctionnalités sont exactement ce dont nous avions besoin.\""
+        - generic [ref=e154]:
+          - generic [ref=e155]: ER
+          - generic [ref=e156]:
+            - generic [ref=e157]: Emily Rodriguez
+            - generic [ref=e158]: Responsable Marketing, Digital Future
+  - generic [ref=e160]:
+    - generic [ref=e161]:
+      - heading "Tarification Simple et Transparente" [level=2] [ref=e162]
+      - paragraph [ref=e163]: Choisissez le plan qui correspond aux besoins de votre entreprise
+    - generic [ref=e164]:
+      - generic [ref=e165]:
+        - generic [ref=e166]:
+          - heading "Débutant" [level=3] [ref=e167]
+          - paragraph [ref=e168]: Parfait pour les petites équipes qui commencent
+          - generic [ref=e169]:
+            - generic [ref=e170]: 29€
+            - generic [ref=e171]: /mois
+        - list [ref=e172]:
+          - listitem [ref=e173]:
+            - img [ref=e174]
+            - generic [ref=e176]: Jusqu'à 1 000 contacts
+          - listitem [ref=e177]:
+            - img [ref=e178]
+            - generic [ref=e180]: Gestion de pipeline basique
+          - listitem [ref=e181]:
+            - img [ref=e182]
+            - generic [ref=e184]: Intégration email
+          - listitem [ref=e185]:
+            - img [ref=e186]
+            - generic [ref=e188]: Accès application mobile
+          - listitem [ref=e189]:
+            - img [ref=e190]
+            - generic [ref=e192]: Support standard
+        - button "Commencer" [ref=e193] [cursor=pointer]
+      - generic [ref=e194]:
+        - generic [ref=e196]: Le Plus Populaire
+        - generic [ref=e197]:
+          - heading "Professionnel" [level=3] [ref=e198]
+          - paragraph [ref=e199]: Idéal pour les entreprises en croissance
+          - generic [ref=e200]:
+            - generic [ref=e201]: 79€
+            - generic [ref=e202]: /mois
+        - list [ref=e203]:
+          - listitem [ref=e204]:
+            - img [ref=e205]
+            - generic [ref=e207]: Jusqu'à 10 000 contacts
+          - listitem [ref=e208]:
+            - img [ref=e209]
+            - generic [ref=e211]: Gestion de pipeline avancée
+          - listitem [ref=e212]:
+            - img [ref=e213]
+            - generic [ref=e215]: Campagnes email automatisées
+          - listitem [ref=e216]:
+            - img [ref=e217]
+            - generic [ref=e219]: Analyses avancées et rapports
+          - listitem [ref=e220]:
+            - img [ref=e221]
+            - generic [ref=e223]: Accès API complet
+          - listitem [ref=e224]:
+            - img [ref=e225]
+            - generic [ref=e227]: Support prioritaire
+        - button "Commencer" [ref=e228] [cursor=pointer]
+      - generic [ref=e229]:
+        - generic [ref=e230]:
+          - heading "Entreprise" [level=3] [ref=e231]
+          - paragraph [ref=e232]: Pour les grandes organisations
+          - generic [ref=e233]:
+            - generic [ref=e234]: 199€
+            - generic [ref=e235]: /mois
+        - list [ref=e236]:
+          - listitem [ref=e237]:
+            - img [ref=e238]
+            - generic [ref=e240]: Contacts illimités
+          - listitem [ref=e241]:
+            - img [ref=e242]
+            - generic [ref=e244]: Workflows personnalisés
+          - listitem [ref=e245]:
+            - img [ref=e246]
+            - generic [ref=e248]: Intégrations avancées
+          - listitem [ref=e249]:
+            - img [ref=e250]
+            - generic [ref=e252]: Options marque blanche
+          - listitem [ref=e253]:
+            - img [ref=e254]
+            - generic [ref=e256]: Gestionnaire de compte dédié
+          - listitem [ref=e257]:
+            - img [ref=e258]
+            - generic [ref=e260]: Support téléphonique 24/7
+        - button "Commencer" [ref=e261] [cursor=pointer]
+  - generic [ref=e264]:
+    - heading "Prêt à Transformer Votre Entreprise ?" [level=2] [ref=e265]
+    - paragraph [ref=e266]: Rejoignez des milliers d'entreprises qui utilisent déjà GDPilia pour augmenter leurs revenus et rationaliser leurs opérations.
+    - button "Essai Gratuit" [ref=e267] [cursor=pointer]:
+      - generic [ref=e268]: Essai Gratuit
+      - img [ref=e269]
+  - contentinfo [ref=e271]:
+    - generic [ref=e273]:
+      - generic [ref=e274]:
+        - img [ref=e276]
+        - generic [ref=e278]:
+          - heading "GDPilia" [level=3] [ref=e279]
+          - paragraph [ref=e280]: CRM Alimenté par IA
+      - generic [ref=e281]:
+        - generic [ref=e282]: © 2024 GDPilia. Tous droits réservés.
+        - img [ref=e283]
+  - generic [ref=e287]:
+    - generic [ref=e288]:
+      - heading "Bon retour" [level=3] [ref=e289]
+      - button [ref=e290] [cursor=pointer]:
+        - img [ref=e291]
+    - generic [ref=e294]:
+      - generic [ref=e295]:
+        - generic [ref=e296]: Email *
+        - textbox "Entrez votre adresse email" [ref=e297]: danaffs2@test.com
+      - generic [ref=e298]:
+        - generic [ref=e299]: Mot de passe *
+        - generic [ref=e300]:
+          - textbox "Entrez votre mot de passe" [ref=e301]: secret123
+          - button [ref=e302] [cursor=pointer]:
+            - img [ref=e303]
+      - button "Se connecter" [ref=e306] [cursor=pointer]
+    - generic [ref=e307]:
+      - generic [ref=e308]: Vous n'avez pas de compte ?
+      - button "S'inscrire" [ref=e309] [cursor=pointer]
+```
