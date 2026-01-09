@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { leadService, Lead } from '../services/leadsService';
 import emailService, { EmailCapability, ScheduleBulkEmailPayload } from '../services/emailService';
-import { timezoneUtils } from '../utils/timezoneUtils';
+import { timezoneUtils } from '../utils/timeZoneUtils';
 import { Dialog } from '@headlessui/react';
 import toast from 'react-hot-toast';
 import ReactQuill from 'react-quill';
