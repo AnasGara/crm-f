@@ -200,7 +200,14 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, onCampaig
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(campaign.status)}`}>
             {campaign.status}
           </span>
-     
+          {isUpdateVisible && (
+            <button
+              onClick={() => setIsUpdateModalOpen(true)}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Update Campaign
+            </button>
+          )}
           <button
             onClick={handleCancelCampaign}
             disabled={isCancelDisabled}
