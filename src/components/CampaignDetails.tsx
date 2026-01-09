@@ -256,6 +256,27 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId }) => {
           )}
         </div>
       </div>
+
+      {/* Audience List */}
+      <div className="mt-8">
+        <h4 className="text-md font-semibold text-gray-800 mb-4">Audience ({campaign.audience.length})</h4>
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          {campaign.audience.length > 0 ? (
+            <ul className="divide-y divide-gray-200">
+              {campaign.audience.map((member) => (
+                <li key={member.id} className="py-3 flex justify-between items-center">
+                  <div>
+                    <p className="font-medium text-gray-900">{member.name}</p>
+                    <p className="text-sm text-gray-500">{member.email}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No audience members found for this campaign.</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
