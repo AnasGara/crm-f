@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import Select from 'react-select';
 import { updateCampaign } from '../services/campaigns';
+import leadService, { Lead } from '../services/leadsService'; // Import leadService and Lead interface
 
 // Interfaces based on the API documentation
 interface Sender {
@@ -36,12 +38,34 @@ interface UpdateCampaignModalProps {
   onCampaignUpdate: (updatedCampaign: CampaignDetailsData) => void;
 }
 
+// Option type for react-select
+interface LeadOption {
+  value: number;
+  label: string;
+  email: string;
+}
+
 const UpdateCampaignModal: React.FC<UpdateCampaignModalProps> = ({ isOpen, onClose, campaign, onCampaignUpdate }) => {
   const [name, setName] = useState('');
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
   const [audience, setAudience] = useState<AudienceMember[]>([]);
+  const [scheduleTime, setScheduleTime] = useState('');
+  const [allLeads, setAllLeads] = useState<Lead[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    // Fetch all leads for the organization
+    const fetchLeads = async () => {
+      try {
+        const leads = await leadService.getLeads();
+        setAllLeads(leads);
+      } catch (error) {
+        console.error('Failed to fetch leads', error);
+      }
+    };
+    fetchLeads();
+  }, []);
 
   useEffect(() => {
     if (campaign) {
@@ -49,16 +73,24 @@ const UpdateCampaignModal: React.FC<UpdateCampaignModalProps> = ({ isOpen, onClo
       setSubject(campaign.subject);
       setContent(campaign.content);
       setAudience(campaign.audience);
+      // Format the schedule_time for the datetime-local input
+      if (campaign.schedule_time) {
+        const date = new Date(campaign.schedule_time);
+        // Format to YYYY-MM-DDTHH:mm
+        const formattedDate = date.toISOString().slice(0, 16);
+        setScheduleTime(formattedDate);
+      } else {
+        setScheduleTime('');
+      }
     }
   }, [campaign]);
 
-  const handleAudienceChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const emails = e.target.value.split(',').map(email => email.trim());
-    const newAudience = emails.map((email, index) => ({
-      id: index,
-      email: email,
-      name: ''
-    }));
+  const handleAudienceChange = (selectedOptions: any) => {
+    const newAudience = selectedOptions ? selectedOptions.map((option: LeadOption) => ({
+      id: option.value,
+      email: option.email,
+      name: option.label.split(' (')[0]
+    })) : [];
     setAudience(newAudience);
   };
   
@@ -67,7 +99,16 @@ const UpdateCampaignModal: React.FC<UpdateCampaignModalProps> = ({ isOpen, onClo
     if (!campaign) return;
 
     setIsSaving(true);
-    const updatedData = { name, subject, content, audience };
+    // Format the schedule time to 'YYYY-MM-DD HH:mm:ss'
+    const formattedScheduleTime = scheduleTime ? new Date(scheduleTime).toISOString().replace('T', ' ').substring(0, 19) : undefined;
+    
+    const updatedData = { 
+      name, 
+      subject, 
+      content, 
+      audience: audience.map(({ id, email, name }) => ({ id, email, name })), 
+      schedule_time: formattedScheduleTime 
+    };
 
     try {
       const response = await updateCampaign(campaign.id, updatedData);
@@ -83,6 +124,18 @@ const UpdateCampaignModal: React.FC<UpdateCampaignModalProps> = ({ isOpen, onClo
   };
 
   if (!isOpen) return null;
+
+  const leadOptions: LeadOption[] = allLeads.map(lead => ({
+    value: lead.id,
+    label: `${lead.full_name} (${lead.email})`,
+    email: lead.email
+  }));
+
+  const selectedLeadOptions = audience.map(member => ({
+    value: member.id,
+    label: `${member.name} (${member.email})`,
+    email: member.email
+  }));
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -104,19 +157,26 @@ const UpdateCampaignModal: React.FC<UpdateCampaignModalProps> = ({ isOpen, onClo
               className="mb-3 px-3 py-2 text-gray-700 bg-white border rounded-md w-full"
               placeholder="Subject"
             />
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="mb-3 px-3 py-2 text-gray-700 bg-white border rounded-md w-full"
-              placeholder="Campaign Content"
-              rows={6}
-            />
-            <textarea
-              value={audience.map(member => member.email).join(', ')}
+          <textarea
+  value={content}
+  onChange={(e) => setContent(e.target.value)}
+  className="mb-3 px-3 py-2 text-gray-700 bg-white border rounded-md w-full"
+  placeholder="Campaign Content"
+  rows={10}
+/>
+            <Select
+              isMulti
+              options={leadOptions}
+              value={selectedLeadOptions}
               onChange={handleAudienceChange}
+              className="mb-3 text-gray-700 bg-white rounded-md w-full"
+              placeholder="Select leads..."
+            />
+            <input
+              type="datetime-local"
+              value={scheduleTime}
+              onChange={(e) => setScheduleTime(e.target.value)}
               className="mb-3 px-3 py-2 text-gray-700 bg-white border rounded-md w-full"
-              placeholder="Audience (comma-separated emails)"
-              rows={4}
             />
             <div className="items-center px-4 py-3">
               <button
