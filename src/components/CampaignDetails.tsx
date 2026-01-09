@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getCampaignDetails, cancelCampaign } from '../services/campaigns';
 import UpdateCampaignModal from './UpdateCampaignModal';
+import toast from 'react-hot-toast';
 
 // Interfaces based on the API documentation
 interface Sender {
@@ -53,9 +54,10 @@ interface CampaignStatistics {
 
 interface CampaignDetailsProps {
   campaignId: number | null;
+  onCampaignUpdated?: () => void; // Add this prop to refresh parent data
 }
 
-const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId }) => {
+const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, onCampaignUpdated }) => {
   const [campaign, setCampaign] = useState<CampaignDetailsData | null>(null);
   const [statistics, setStatistics] = useState<CampaignStatistics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,6 +65,26 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId }) => {
   const [isCancelling, setIsCancelling] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+
+  const fetchCampaignDetails = async () => {
+    if (!campaignId) return;
+    
+    try {
+      setLoading(true);
+      const response = await getCampaignDetails(campaignId);
+      if (response && response.campaign) {
+        setCampaign(response.campaign);
+        setStatistics(response.statistics);
+      } else {
+        setError('Campaign not found.');
+      }
+    } catch (err) {
+      setError('Failed to fetch campaign details.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCancelCampaign = async () => {
     if (campaign && window.confirm('Are you sure you want to cancel this campaign?')) {
@@ -77,10 +99,15 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId }) => {
           setTimeout(() => {
             setShowSuccessPopup(false);
           }, 3000);
+          
+          // Notify parent to refresh if needed
+          if (onCampaignUpdated) {
+            onCampaignUpdated();
+          }
         }
       } catch (err) {
-        // Optionally, show an error message to the user
         console.error('Failed to cancel campaign', err);
+        toast.error('Failed to cancel campaign');
       } finally {
         setIsCancelling(false);
       }
@@ -88,32 +115,22 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId }) => {
   };
 
   const handleCampaignUpdate = (updatedCampaign: CampaignDetailsData) => {
-    // This will be properly implemented in the next step.
-    console.log('Campaign updated (UI update to be implemented):', updatedCampaign);
-    setCampaign({ ...campaign, ...updatedCampaign });
+    // Update the local state with the new campaign data
+    setCampaign(updatedCampaign);
+    
+    // REMOVED: Don't show toast here, it's already shown in the modal
+    // toast.success('Campaign updated successfully!');
+    
+    // Fetch fresh data to ensure everything is in sync
+    fetchCampaignDetails();
+    
+    // Notify parent to refresh if needed
+    if (onCampaignUpdated) {
+      onCampaignUpdated();
+    }
   };
 
   useEffect(() => {
-    const fetchCampaignDetails = async () => {
-      if (campaignId) {
-        try {
-          setLoading(true);
-          const response = await getCampaignDetails(campaignId);
-          if (response && response.campaign) {
-            setCampaign(response.campaign);
-            setStatistics(response.statistics);
-          } else {
-            setError('Campaign not found.');
-          }
-        } catch (err) {
-          setError('Failed to fetch campaign details.');
-          console.error(err);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
     fetchCampaignDetails();
   }, [campaignId]);
 
@@ -183,14 +200,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId }) => {
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(campaign.status)}`}>
             {campaign.status}
           </span>
-          {isUpdateVisible && (
-            <button
-              onClick={() => setIsUpdateModalOpen(true)}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Update Campaign
-            </button>
-          )}
+     
           <button
             onClick={handleCancelCampaign}
             disabled={isCancelDisabled}
@@ -294,12 +304,14 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId }) => {
           )}
         </div>
       </div>
-       {campaign && <UpdateCampaignModal
+
+      {/* Update Campaign Modal */}
+      <UpdateCampaignModal
         isOpen={isUpdateModalOpen}
         onClose={() => setIsUpdateModalOpen(false)}
         campaign={campaign}
         onCampaignUpdate={handleCampaignUpdate}
-      />}
+      />
     </div>
   );
 };
