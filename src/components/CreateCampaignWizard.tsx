@@ -433,12 +433,12 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
         );
       case 4:
         return (
-          <div>
+          <div className="flex flex-col h-full">
             <h3 className="text-xl font-semibold leading-6 text-gray-900">Email Content</h3>
             <p className="mt-1 text-sm text-gray-500">
               Compose the email content using the rich text editor below.
             </p>
-            <div className="mt-6">
+            <div className="mt-4 flex-grow flex flex-col min-h-0">
               <div className="flex space-x-2 mb-2">
                 <button
                   type="button"
@@ -455,13 +455,36 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
                   {'{{company}}'}
                 </button>
               </div>
-              <Controller
-                name="content"
-                control={control}
-                rules={{ required: 'Email content is required' }}
-                render={({ field }) => <ReactQuill theme="snow" {...field} value={field.value || ''} />}
-              />
-              {errors.content && <p className="mt-2 text-sm text-red-600">{errors.content.message}</p>}
+              <div className="flex-grow min-h-0 flex flex-col">
+                <Controller
+                  name="content"
+                  control={control}
+                  rules={{ required: 'Email content is required' }}
+                  render={({ field }) => (
+                    <div className="flex-grow min-h-0 flex flex-col">
+                      <div className="flex-grow min-h-0 overflow-hidden">
+                        <ReactQuill 
+                          theme="snow" 
+                          {...field} 
+                          value={field.value || ''}
+                          className="h-full flex flex-col"
+                          modules={{
+                            toolbar: [
+                              [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                              ['bold', 'italic', 'underline', 'strike'],
+                              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                              [{ 'color': [] }, { 'background': [] }],
+                              ['link', 'image'],
+                              ['clean']
+                            ]
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                />
+                {errors.content && <p className="mt-2 text-sm text-red-600">{errors.content.message}</p>}
+              </div>
             </div>
           </div>
         );
@@ -592,49 +615,55 @@ const CreateCampaignWizard: React.FC<CreateCampaignWizardProps> = ({ isOpen, onC
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="w-full max-w-2xl rounded-lg bg-white p-8 shadow-xl">
-          <ProgressBar currentStep={step} totalSteps={6} />
-          <form onSubmit={handleSubmit(onSubmit)}>
-            {renderStep()}
-            <div className="mt-8 flex justify-between">
-              <button
-                type="button"
-                onClick={() => setStep(step - 1)}
-                disabled={step === 1}
-                className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Back
-              </button>
-              {step < 6 && (
+        <Dialog.Panel className="w-full max-w-4xl mx-auto bg-white rounded-lg shadow-xl flex flex-col max-h-[90vh]">
+          <div className="px-8 pt-8 pb-4">
+            <ProgressBar currentStep={step} totalSteps={6} />
+          </div>
+          <div className="px-8 py-4 flex-grow overflow-y-auto">
+            <form onSubmit={handleSubmit(onSubmit)} className="h-full flex flex-col">
+              <div className="flex-grow">
+                {renderStep()}
+              </div>
+              <div className="mt-8 flex justify-between pt-4 border-t">
                 <button
                   type="button"
-                  onClick={handleNext}
-                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  onClick={() => setStep(step - 1)}
+                  disabled={step === 1}
+                  className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Next
+                  Back
                 </button>
-              )}
-              {step === 6 && (
-                <button
-                  type="submit"
-                  disabled={sending}
-                  className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {sending ? (
-                    <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      {schedule === 'later' ? 'Scheduling...' : 'Sending...'}
-                    </span>
-                  ) : (
-                    schedule === 'later' ? 'Confirm & Schedule' : 'Confirm & Send'
-                  )}
-                </button>
-              )}
-            </div>
-          </form>
+                {step < 6 && (
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                    Next
+                  </button>
+                )}
+                {step === 6 && (
+                  <button
+                    type="submit"
+                    disabled={sending}
+                    className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {sending ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {schedule === 'later' ? 'Scheduling...' : 'Sending...'}
+                      </span>
+                    ) : (
+                      schedule === 'later' ? 'Confirm & Schedule' : 'Confirm & Send'
+                    )}
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
         </Dialog.Panel>
       </div>
     </Dialog>
