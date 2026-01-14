@@ -360,6 +360,23 @@ class OrganizationService {
       throw error;
     }
   }
+
+  /**
+   * Get all users for the current user's organization
+   */
+  async getOrganizationUsers(): Promise<any[]> {
+    try {
+      const currentUser = authService.getStoredUser();
+      if (!currentUser || !currentUser.organisation_id) {
+        return [];
+      }
+
+      return this.getOrganizationMembers(currentUser.organisation_id);
+    } catch (error) {
+      console.error('Get organization users error:', error);
+      return [];
+    }
+  }
 }
 
 // Create and export service instance

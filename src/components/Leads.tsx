@@ -14,8 +14,12 @@ import {
   UserIcon,
   EnvelopeIcon,
   ChevronUpDownIcon,
+  PlusIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import StatusIcon from "./StatusIcon";
+import taskService, { Task } from "../services/taskService";
+import organizationService from "../services/organizationService";
 
 type Status = "to_be_treated" | "qualified" | "archived";
 
@@ -27,6 +31,22 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [taskFormData, setTaskFormData] = useState({
+    title: "",
+    description: "",
+    type: "Other",
+    priority: "Medium",
+    status: "Open",
+    due_date: "",
+    related_to: "",
+  });
+  const [selectedLeadForTask, setSelectedLeadForTask] = useState<Lead | null>(
+    null
+  );
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [isManualEntry, setIsManualEntry] = useState(false);
+  const [organizationUsers, setOrganizationUsers] = useState<any[]>([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -48,6 +68,15 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
 
   // Fetch ALL leads from API once on initial load
   useEffect(() => {
+    const fetchOrganizationUsers = async () => {
+      try {
+        const users = await organizationService.getOrganizationUsers();
+        setOrganizationUsers(users);
+      } catch (error) {
+        console.error("Failed to fetch organization users:", error);
+      }
+    };
+    fetchOrganizationUsers();
     const fetchLeads = async () => {
       setLoading(true);
       setError(null);
@@ -252,6 +281,33 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
     } catch (error: any) {
       console.error('Toggle treated error:', error);
       setError(`Failed to update lead status: ${error.message || 'Unknown error'}`);
+    }
+  };
+
+  const handleOpenAddTaskModal = (lead: Lead) => {
+    setSelectedLeadForTask(lead);
+    setTaskFormData({
+      ...taskFormData,
+      title: `[Action] ${lead.full_name}`,
+      related_to: lead.email,
+    });
+    setShowAddTaskModal(true);
+  };
+
+  const handleAddTask = async () => {
+    if (!selectedLeadForTask) return;
+
+    try {
+      await taskService.createTask({
+        ...taskFormData,
+        related_to: selectedLeadForTask.email,
+        assignee_id: undefined,
+      });
+      setShowAddTaskModal(false);
+      // Optionally, you can add a success notification here
+    } catch (error) {
+      console.error("Failed to add task:", error);
+      // Optionally, you can add an error notification here
     }
   };
 
@@ -587,6 +643,205 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
       <LeadForm isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveLead} lead={editingLead} />
       <GDPiliaComposer isOpen={isComposerOpen} onClose={() => setIsComposerOpen(false)} lead={editingLead} />
 
+      {/* Add Task Modal */}
+      {showAddTaskModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Add New Task</h3>
+              <button
+                onClick={() => setShowAddTaskModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XMarkIcon size={24} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                <input
+                  type="text"
+                  value={taskFormData.title}
+                  onChange={(e) => setTaskFormData({ ...taskFormData, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter task title"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={taskFormData.description}
+                  onChange={(e) => setTaskFormData({ ...taskFormData, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter task description"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select
+                  value={taskFormData.type}
+                  onChange={(e) => setTaskFormData({ ...taskFormData, type: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="Call">Call</option>
+                  <option value="Email">Email</option>
+                  <option value="Meeting">Meeting</option>
+                  <option value="Follow-up">Follow-up</option>
+                  <option value="Report">Report</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                <select
+                  value={taskFormData.priority}
+                  onChange={(e) => setTaskFormData({ ...taskFormData, priority: e.target.value as Task['priority'] })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  value={taskFormData.status}
+                  onChange={(e) => setTaskFormData({ ...taskFormData, status: e.target.value as Task['status'] })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="Open">Open</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Closed">Closed</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Due Date *</label>
+                <input
+                  type="date"
+                  value={taskFormData.due_date}
+                  onChange={(e) => setTaskFormData({ ...taskFormData, due_date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Related To</label>
+                <div className="relative">
+                  <div className="flex space-x-2">
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        value={taskFormData.related_to}
+                        onChange={(e) => {
+                          setTaskFormData({ ...taskFormData, related_to: e.target.value });
+                          setIsManualEntry(true);
+                          if (e.target.value.trim()) {
+                            setShowUserDropdown(false);
+                          }
+                        }}
+                        onFocus={() => {
+                          if (!isManualEntry) {
+                            setShowUserDropdown(true);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            setShowUserDropdown(false);
+                            setIsManualEntry(false);
+                          }
+                        }}
+                        className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Select user or enter email"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowUserDropdown(!showUserDropdown);
+                          setIsManualEntry(false);
+                        }}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <ChevronDownIcon size={20} />
+                      </button>
+                    </div>
+                    {taskFormData.related_to && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTaskFormData({ ...taskFormData, related_to: '' });
+                          setIsManualEntry(false);
+                        }}
+                        className="px-3 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  {showUserDropdown && organizationUsers.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {organizationUsers.map((user) => (
+                        <button
+                          key={user.id}
+                          type="button"
+                          onClick={() => {
+                            setTaskFormData({ ...taskFormData, related_to: user.email });
+                            setShowUserDropdown(false);
+                            setIsManualEntry(false);
+                          }}
+                          className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-3"
+                        >
+                          <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-blue-600 font-medium text-sm">
+                              {user.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-900">{user.name}</div>
+                            <div className="text-sm text-gray-500">{user.email}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Select a user from your organization or enter an email manually</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowAddTaskModal(false);
+                  setShowUserDropdown(false);
+                  setIsManualEntry(false);
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddTask}
+                disabled={!taskFormData.title || !taskFormData.due_date}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Add Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div className="mt-6 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
@@ -828,6 +1083,13 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
                           title="Compose email"
                         >
                           <EnvelopeIcon className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenAddTaskModal(lead)}
+                          className="p-1 text-gray-500 hover:text-gray-700"
+                          title="Add task"
+                        >
+                          <PlusIcon className="h-5 w-5" />
                         </button>
                       </div>
                     </td>
