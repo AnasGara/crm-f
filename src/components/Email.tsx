@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Mail, Send, Users, Eye, BarChart3, Calendar, Edit, Trash2, XCircle, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import CreateCampaignWizard from './CreateCampaignWizard';
 import { getCampaigns } from '../services/campaigns';
+import emailService from '../services/emailService';
 import { getScheduledEmails } from '../services/scheduledEmails';
 
 // Interfaces based on the API documentation
@@ -23,6 +24,26 @@ interface Campaign {
   schedule_time: string;
   completed_at: string | null;
   sender: Sender;
+}
+
+interface SentEmail {
+  id: number;
+  lead: {
+    id: number;
+    name: string;
+    email: string;
+    company: string | null;
+  };
+  to_email: string;
+  subject: string;
+  body: string;
+  body_preview: string;
+  message_id: string;
+  status: string;
+  error_message: string | null;
+  sent_at: string;
+  scheduled_for: string | null;
+  created_at: string;
 }
 
 interface ScheduledEmail {
@@ -48,7 +69,7 @@ interface EmailProps {
 
 interface PaginatedTableProps {
   title: string;
-  data: Campaign[] | ScheduledEmail[];
+  data: Campaign[] | ScheduledEmail[] | SentEmail[];
   columns: Array<{
     key: string;
     label: string;
@@ -222,6 +243,7 @@ const Email: React.FC<EmailProps> = ({ onViewCampaignDetails }) => {
   const [campaignsToBeSent, setCampaignsToBeSent] = useState<Campaign[]>([]);
   const [campaignHistory, setCampaignHistory] = useState<Campaign[]>([]);
   const [cancelledCampaigns, setCancelledCampaigns] = useState<Campaign[]>([]);
+  const [sentEmails, setSentEmails] = useState<SentEmail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -233,6 +255,12 @@ const Email: React.FC<EmailProps> = ({ onViewCampaignDetails }) => {
       const scheduledEmailsResponse = await getScheduledEmails({ status: 'scheduled' });
       const allScheduledEmails = scheduledEmailsResponse?.data || [];
       setSingleEmails(allScheduledEmails.filter((email: ScheduledEmail) => !email.campaign_id));
+
+      // Fetch sent emails
+      const sentEmailsResponse = await emailService.getMySentEmails();
+      if (sentEmailsResponse && sentEmailsResponse.data) {
+        setSentEmails(sentEmailsResponse.data.emails);
+      }
 
       // Fetch campaigns with status "scheduled" for "Campaigns to be Sent" section
       const scheduledCampaignsResponse = await getCampaigns({ status: 'scheduled' });
@@ -397,6 +425,57 @@ const Email: React.FC<EmailProps> = ({ onViewCampaignDetails }) => {
     },
   ];
 
+  // Sent emails columns configuration
+  const sentEmailColumns = [
+    {
+      key: 'recipient',
+      label: 'Recipient',
+      render: (email: SentEmail) => (
+        <div>
+          <p className="font-medium text-gray-900">{email.to_email}</p>
+          <p className="text-sm text-gray-500">{email.lead.name}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'subject',
+      label: 'Subject',
+      render: (email: SentEmail) => (
+        <div className="text-sm text-gray-600">
+          {email.subject}
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (email: SentEmail) => (
+        <div className="text-right">
+          <p className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(email.status)}`}>
+            {getStatusIcon(email.status)}
+            {email.status}
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            Sent: {new Date(email.sent_at).toLocaleString()}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (email: SentEmail) => (
+        <div className="flex space-x-2">
+          <button
+            className="text-sm text-blue-600 hover:text-blue-800 hover:underline px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors"
+          >
+            View Details
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   // Single emails columns configuration
   const singleEmailColumns = [
     {
@@ -507,6 +586,14 @@ const Email: React.FC<EmailProps> = ({ onViewCampaignDetails }) => {
         title="Cancelled Campaigns"
         data={cancelledCampaigns}
         columns={campaignColumns}
+        itemsPerPage={5}
+      />
+
+      {/* Section 5: Sent Emails */}
+      <PaginatedTable
+        title="My Sent Emails"
+        data={sentEmails}
+        columns={sentEmailColumns}
         itemsPerPage={5}
       />
     </div>
