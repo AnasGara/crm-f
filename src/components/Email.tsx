@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Mail, Send, Users, Eye, BarChart3, Calendar, Edit, Trash2, XCircle, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import CreateCampaignWizard from './CreateCampaignWizard';
 import { getCampaigns } from '../services/campaigns';
+import emailService, { SentEmail as EmailServiceSentEmail } from '../services/emailService';
 import { getScheduledEmails } from '../services/scheduledEmails';
 
 // Interfaces based on the API documentation
@@ -23,6 +24,26 @@ interface Campaign {
   schedule_time: string;
   completed_at: string | null;
   sender: Sender;
+}
+
+interface SentEmail {
+  id: number;
+  lead: {
+    id: number;
+    name: string;
+    email: string;
+    company: string | null;
+  };
+  to_email: string;
+  subject: string;
+  body: string;
+  body_preview: string;
+  message_id: string;
+  status: string;
+  error_message: string | null;
+  sent_at: string;
+  scheduled_for: string | null;
+  created_at: string;
 }
 
 interface ScheduledEmail {
@@ -48,7 +69,7 @@ interface EmailProps {
 
 interface PaginatedTableProps {
   title: string;
-  data: Campaign[] | ScheduledEmail[];
+  data: Campaign[] | SentEmail[];
   columns: Array<{
     key: string;
     label: string;
@@ -69,8 +90,9 @@ const PaginatedTable: React.FC<PaginatedTableProps> = ({
 
   // Filter data based on search term
   const filteredData = data.filter(item => 
-    item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.subject?.toLowerCase().includes(searchTerm.toLowerCase())
+    (item as any).name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item as any).subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item as any).to_email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Calculate pagination
@@ -222,6 +244,7 @@ const Email: React.FC<EmailProps> = ({ onViewCampaignDetails }) => {
   const [campaignsToBeSent, setCampaignsToBeSent] = useState<Campaign[]>([]);
   const [campaignHistory, setCampaignHistory] = useState<Campaign[]>([]);
   const [cancelledCampaigns, setCancelledCampaigns] = useState<Campaign[]>([]);
+  const [sentEmails, setSentEmails] = useState<SentEmail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -233,6 +256,30 @@ const Email: React.FC<EmailProps> = ({ onViewCampaignDetails }) => {
       const scheduledEmailsResponse = await getScheduledEmails({ status: 'scheduled' });
       const allScheduledEmails = scheduledEmailsResponse?.data || [];
       setSingleEmails(allScheduledEmails.filter((email: ScheduledEmail) => !email.campaign_id));
+
+      // Fetch sent emails
+      const sentEmailsResponse = await emailService.getMySentEmails();
+      if (sentEmailsResponse && sentEmailsResponse.success && sentEmailsResponse.data) {
+        // Map the response to match our SentEmail interface
+        const mappedSentEmails: SentEmail[] = sentEmailsResponse.data.emails.map((email: EmailServiceSentEmail) => ({
+          id: email.id,
+          lead: email.lead,
+          to_email: email.to_email,
+          subject: email.subject,
+          body: '', // Default empty value
+          body_preview: '', // Default empty value
+          message_id: '', // Default empty value
+          status: email.status,
+          error_message: null, // Default null
+          sent_at: email.sent_at,
+          scheduled_for: null, // Default null
+          created_at: email.sent_at // Use sent_at as created_at
+        }));
+        setSentEmails(mappedSentEmails);
+      } else {
+        console.warn('Failed to fetch sent emails:', sentEmailsResponse?.message);
+        setSentEmails([]);
+      }
 
       // Fetch campaigns with status "scheduled" for "Campaigns to be Sent" section
       const scheduledCampaignsResponse = await getCampaigns({ status: 'scheduled' });
@@ -266,7 +313,7 @@ const Email: React.FC<EmailProps> = ({ onViewCampaignDetails }) => {
       
     } catch (err) {
       setError('Failed to fetch email data.');
-      console.error(err);
+      console.error('Error fetching email data:', err);
     } finally {
       setLoading(false);
     }
@@ -362,7 +409,7 @@ const Email: React.FC<EmailProps> = ({ onViewCampaignDetails }) => {
             {campaign.failed_count > 0 && (
               <span className="text-red-500">
                 <Send size={14} className="inline mr-1" /> {campaign.failed_count} failed
-              </span>
+            </span>
             )}
           </div>
           {campaign.completed_at && (
@@ -392,6 +439,57 @@ const Email: React.FC<EmailProps> = ({ onViewCampaignDetails }) => {
               <Calendar size={16} className="inline" />
             </button>
           )}
+        </div>
+      ),
+    },
+  ];
+
+  // Sent emails columns configuration
+  const sentEmailColumns = [
+    {
+      key: 'recipient',
+      label: 'Recipient',
+      render: (email: SentEmail) => (
+        <div>
+          <p className="font-medium text-gray-900">{email.to_email}</p>
+          <p className="text-sm text-gray-500">{email.lead.name}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'subject',
+      label: 'Subject',
+      render: (email: SentEmail) => (
+        <div className="text-sm text-gray-600">
+          {email.subject}
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (email: SentEmail) => (
+        <div className="text-right">
+          <p className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(email.status)}`}>
+            {getStatusIcon(email.status)}
+            {email.status}
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            Sent: {new Date(email.sent_at).toLocaleString()}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (email: SentEmail) => (
+        <div className="flex space-x-2">
+          <button
+            className="text-sm text-blue-600 hover:text-blue-800 hover:underline px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors"
+          >
+            View Details
+          </button>
         </div>
       ),
     },
@@ -476,25 +574,25 @@ const Email: React.FC<EmailProps> = ({ onViewCampaignDetails }) => {
 
       <CreateCampaignWizard isOpen={isWizardOpen} onClose={handleWizardClose} />
 
-      {/* Section 1: Single Emails */}
-      {singleEmails.length > 0 && (
-        <PaginatedTable
-          title="Single Emails"
-          data={singleEmails}
-          columns={singleEmailColumns}
-          itemsPerPage={5}
-        />
-      )}
+  
+      
+            {/* Section 3: Campaigns to be Sent */}
+            <PaginatedTable
+              title="Campaigns to be Sent"
+              data={campaignsToBeSent}
+              columns={campaignColumns}
+              itemsPerPage={5}
+            />
 
-      {/* Section 2: Campaigns to be Sent */}
+      {/* Section 2: Cancelled Campaigns */}
       <PaginatedTable
-        title="Campaigns to be Sent"
-        data={campaignsToBeSent}
+        title="Cancelled Campaigns"
+        data={cancelledCampaigns}
         columns={campaignColumns}
         itemsPerPage={5}
       />
 
-      {/* Section 3: Campaign History */}
+      {/* Section 4: Campaign History */}
       <PaginatedTable
         title="Campaign History"
         data={campaignHistory}
@@ -502,13 +600,28 @@ const Email: React.FC<EmailProps> = ({ onViewCampaignDetails }) => {
         itemsPerPage={5}
       />
 
-      {/* Section 4: Cancelled Campaigns */}
+      {/* Section 5: My Sent Emails */}
       <PaginatedTable
-        title="Cancelled Campaigns"
-        data={cancelledCampaigns}
-        columns={campaignColumns}
+        title="My Sent Emails"
+        data={sentEmails}
+        columns={sentEmailColumns}
         itemsPerPage={5}
       />
+
+      {!singleEmails.length && !campaignsToBeSent.length && !campaignHistory.length && 
+       !cancelledCampaigns.length && !sentEmails.length && !loading && (
+        <div className="text-center py-12">
+          <Mail size={48} className="mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No email data yet</h3>
+          <p className="text-gray-600 mb-6">Create your first campaign to get started</p>
+          <button
+            onClick={() => setIsWizardOpen(true)}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Create Campaign
+          </button>
+        </div>
+      )}
     </div>
   );
 };
