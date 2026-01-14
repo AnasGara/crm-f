@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import leadService, { Lead, CreateLeadData, UpdateLeadData } from "../services/leadsService";
 import LeadForm from "./LeadForm";
 import GDPiliaComposer from "./GDPiliaComposer";
@@ -304,10 +305,10 @@ const Leads: React.FC<{ searchTerm?: string }> = ({ searchTerm }) => {
         assignee_id: undefined,
       });
       setShowAddTaskModal(false);
-      // Optionally, you can add a success notification here
+      toast.success("Task added successfully!");
     } catch (error) {
       console.error("Failed to add task:", error);
-      // Optionally, you can add an error notification here
+      toast.error("Failed to add task.");
     }
   };
 
