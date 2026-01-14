@@ -131,6 +131,34 @@ const emailService = {
   getMySentEmails: async (): Promise<ApiResponse<MySentEmailsResponse>> => {
     return httpClient.get<MySentEmailsResponse>('/emails/my-sent-emails');
   },
+
+  getEmailLog: async (emailId: number): Promise<ApiResponse<EmailLog>> => {
+    return httpClient.get<EmailLog>(`/emails/logs/${emailId}`);
+  },
 };
+
+export interface EmailLog {
+  id: number;
+  lead: {
+    id: number;
+    name: string;
+    email: string;
+    company: string | null;
+    position: string | null;
+    location: string | null;
+  };
+  user_id: number;
+  organisation_id: number;
+  to_email: string;
+  subject: string;
+  body: string;
+  message_id: string;
+  status: string;
+  error_message: string | null;
+  sent_at: string;
+  scheduled_for: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 export default emailService;
