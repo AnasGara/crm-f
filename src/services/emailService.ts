@@ -103,6 +103,34 @@ const emailService = {
       };
     }
   },
+
+  getMySentEmails: async (): Promise<ApiResponse<MySentEmailsResponse>> => {
+    return httpClient.get<MySentEmailsResponse>('/emails/my-sent-emails');
+  },
 };
+
+export interface SentEmail {
+  id: number;
+  lead: {
+    id: number;
+    name: string;
+    email: string;
+    company: string | null;
+  };
+  to_email: string;
+  subject: string;
+  status: string;
+  sent_at: string;
+}
+
+export interface MySentEmailsResponse {
+  emails: SentEmail[];
+  pagination: {
+    current_page: number;
+    per_page: number;
+    total: number;
+    total_pages: number;
+  };
+}
 
 export default emailService;

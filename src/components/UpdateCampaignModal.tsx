@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import { updateCampaign } from '../services/campaigns';
 import leadService, { Lead } from '../services/leadsService';
-import { timezoneUtils } from '../utils/timezoneUtils';
+import { timezoneUtils } from '../utils/timeZoneUtils';
 import toast from 'react-hot-toast';
 
 // Interfaces based on the API documentation
