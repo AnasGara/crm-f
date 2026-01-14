@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Mail, Send, Users, Eye, BarChart3, Calendar, Edit, Trash2, XCircle, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import CreateCampaignWizard from './CreateCampaignWizard';
 import { getCampaigns } from '../services/campaigns';
-import emailService, { SentEmail as EmailServiceSentEmail } from '../services/emailService';
+import emailService, { SentEmail as EmailServiceSentEmail, EmailLog } from '../services/emailService';
 import { getScheduledEmails } from '../services/scheduledEmails';
+import EmailDetailsModal from './EmailDetailsModal';
 
 // Interfaces based on the API documentation
 interface Sender {
@@ -248,6 +249,34 @@ const Email: React.FC<EmailProps> = ({ onViewCampaignDetails }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedEmail, setSelectedEmail] = useState<EmailLog | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
+
+  const handleViewDetails = async (emailId: number) => {
+    setIsDetailsModalOpen(true);
+    setModalLoading(true);
+    setModalError(null);
+    try {
+      const response = await emailService.getEmailLog(emailId);
+      if (response.success && response.data) {
+        setSelectedEmail(response.data);
+      } else {
+        setModalError(response.message || 'Failed to fetch email details.');
+      }
+    } catch (err) {
+      setModalError('An unexpected error occurred.');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleCloseDetailsModal = () => {
+    setIsDetailsModalOpen(false);
+    setSelectedEmail(null);
+  };
+
   const fetchEmailData = async () => {
     try {
       setLoading(true);
@@ -486,6 +515,7 @@ const Email: React.FC<EmailProps> = ({ onViewCampaignDetails }) => {
       render: (email: SentEmail) => (
         <div className="flex space-x-2">
           <button
+            onClick={() => handleViewDetails(email.id)}
             className="text-sm text-blue-600 hover:text-blue-800 hover:underline px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors"
           >
             View Details
@@ -574,6 +604,13 @@ const Email: React.FC<EmailProps> = ({ onViewCampaignDetails }) => {
 
       <CreateCampaignWizard isOpen={isWizardOpen} onClose={handleWizardClose} />
 
+      <EmailDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={handleCloseDetailsModal}
+        emailDetails={selectedEmail}
+        loading={modalLoading}
+        error={modalError}
+      />
   
       
             {/* Section 3: Campaigns to be Sent */}
